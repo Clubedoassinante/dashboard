@@ -1,0 +1,64 @@
+name: Carga mensal do Clube (Supabase)
+
+# Disparado manualmente por um admin, depois de subir a carteira e os
+# vouchers do mês para o bucket privado "uploads-planilhas" no Supabase
+# Storage (pelo painel do Supabase, ou futuramente por uma tela de
+# upload no próprio site). Nenhum dado sensível passa pelo GitHub em
+# nenhum momento -- os arquivos são baixados diretamente do Storage
+# para a memória efêmera do runner, processados e descartados.
+on:
+  workflow_dispatch:
+    inputs:
+      ano:
+        description: "Ano (ex: 2026)"
+        required: true
+      mes:
+        description: "Mês, número de 1 a 12 (ex: 9)"
+        required: true
+      ref_date:
+        description: "Último dia do mês (AAAA-MM-DD)"
+        required: true
+      carteira_storage_path:
+        description: "Caminho do arquivo de carteira dentro do bucket uploads-planilhas"
+        required: true
+      vouchers_storage_path:
+        description: "Caminho do arquivo de vouchers dentro do bucket uploads-planilhas"
+        required: true
+      oficial_vouchers:
+        description: "(Opcional) Total oficial de vouchers gerados no mês, fonte Alloyal"
+        required: false
+      oficial_usuarios:
+        description: "(Opcional) Total oficial de usuários únicos no mês, fonte Alloyal"
+        required: false
+      oficial_frequencia:
+        description: "(Opcional) Frequência de uso oficial no mês, fonte Alloyal"
+        required: false
+
+jobs:
+  carga:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependências
+        run: pip install -r etl/requirements.txt
+
+      - name: Rodar carga mensal
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          CPF_PEPPER: ${{ secrets.CPF_PEPPER }}
+        run: |
+          python3 etl/carga_mensal.py \
+            --ano "${{ github.event.inputs.ano }}" \
+            --mes "${{ github.event.inputs.mes }}" \
+            --ref-date "${{ github.event.inputs.ref_date }}" \
+            --carteira-storage-path "${{ github.event.inputs.carteira_storage_path }}" \
+            --vouchers-storage-path "${{ github.event.inputs.vouchers_storage_path }}" \
+            ${{ github.event.inputs.oficial_vouchers && format('--oficial-vouchers {0}', github.event.inputs.oficial_vouchers) || '' }} \
+            ${{ github.event.inputs.oficial_usuarios && format('--oficial-usuarios {0}', github.event.inputs.oficial_usuarios) || '' }} \
+            ${{ github.event.inputs.oficial_frequencia && format('--oficial-frequencia {0}', github.event.inputs.oficial_frequencia) || '' }}
