@@ -1,0 +1,242 @@
+{
+  "referencia_mensal": {
+    "2023-06": {
+      "vouchers_gerados_oficial": 3219,
+      "usuarios_unicos_oficial": 1585,
+      "frequencia_uso_oficial": 2.03,
+      "frequencia_uso_planilha_original": 2.03
+    },
+    "2023-07": {
+      "vouchers_gerados_oficial": 8659,
+      "usuarios_unicos_oficial": 4222,
+      "frequencia_uso_oficial": 2.05,
+      "frequencia_uso_planilha_original": 2.05
+    },
+    "2023-08": {
+      "vouchers_gerados_oficial": 9469,
+      "usuarios_unicos_oficial": 4433,
+      "frequencia_uso_oficial": 2.14,
+      "frequencia_uso_planilha_original": 2.14
+    },
+    "2023-09": {
+      "vouchers_gerados_oficial": 9468,
+      "usuarios_unicos_oficial": 4513,
+      "frequencia_uso_oficial": 2.1,
+      "frequencia_uso_planilha_original": 2.1
+    },
+    "2023-10": {
+      "vouchers_gerados_oficial": 7615,
+      "usuarios_unicos_oficial": 4002,
+      "frequencia_uso_oficial": 1.9,
+      "frequencia_uso_planilha_original": 1.9
+    },
+    "2023-11": {
+      "vouchers_gerados_oficial": 8918,
+      "usuarios_unicos_oficial": 4829,
+      "frequencia_uso_oficial": 1.85,
+      "frequencia_uso_planilha_original": 1.85
+    },
+    "2023-12": {
+      "vouchers_gerados_oficial": 9116,
+      "usuarios_unicos_oficial": 5192,
+      "frequencia_uso_oficial": 1.76,
+      "frequencia_uso_planilha_original": 1.76
+    },
+    "2024-01": {
+      "vouchers_gerados_oficial": 15677,
+      "usuarios_unicos_oficial": 8498,
+      "frequencia_uso_oficial": 1.84,
+      "frequencia_uso_planilha_original": 1.84
+    },
+    "2024-02": {
+      "vouchers_gerados_oficial": 10262,
+      "usuarios_unicos_oficial": 6827,
+      "frequencia_uso_oficial": 1.5,
+      "frequencia_uso_planilha_original": 1.5
+    },
+    "2024-03": {
+      "vouchers_gerados_oficial": 11086,
+      "usuarios_unicos_oficial": 7082,
+      "frequencia_uso_oficial": 1.57,
+      "frequencia_uso_planilha_original": 1.57
+    },
+    "2024-04": {
+      "vouchers_gerados_oficial": 10844,
+      "usuarios_unicos_oficial": 6845,
+      "frequencia_uso_oficial": 1.58,
+      "frequencia_uso_planilha_original": 1.58
+    },
+    "2024-05": {
+      "vouchers_gerados_oficial": 4401,
+      "usuarios_unicos_oficial": 2704,
+      "frequencia_uso_oficial": 1.63,
+      "frequencia_uso_planilha_original": 1.63
+    },
+    "2024-06": {
+      "vouchers_gerados_oficial": 8870,
+      "usuarios_unicos_oficial": 5208,
+      "frequencia_uso_oficial": 1.7,
+      "frequencia_uso_planilha_original": 1.7
+    },
+    "2024-07": {
+      "vouchers_gerados_oficial": 12830,
+      "usuarios_unicos_oficial": 6980,
+      "frequencia_uso_oficial": 1.84,
+      "frequencia_uso_planilha_original": 1.84
+    },
+    "2024-08": {
+      "vouchers_gerados_oficial": 11787,
+      "usuarios_unicos_oficial": 6001,
+      "frequencia_uso_oficial": 1.96,
+      "frequencia_uso_planilha_original": 1.96
+    },
+    "2024-09": {
+      "vouchers_gerados_oficial": 10690,
+      "usuarios_unicos_oficial": 5177,
+      "frequencia_uso_oficial": 2.06,
+      "frequencia_uso_planilha_original": 2.06
+    },
+    "2024-10": {
+      "vouchers_gerados_oficial": 10689,
+      "usuarios_unicos_oficial": 5420,
+      "frequencia_uso_oficial": 1.97,
+      "frequencia_uso_planilha_original": 1.97
+    },
+    "2024-11": {
+      "vouchers_gerados_oficial": 15102,
+      "usuarios_unicos_oficial": 7692,
+      "frequencia_uso_oficial": 1.96,
+      "frequencia_uso_planilha_original": 1.96
+    },
+    "2024-12": {
+      "vouchers_gerados_oficial": 13502,
+      "usuarios_unicos_oficial": 7106,
+      "frequencia_uso_oficial": 1.9,
+      "frequencia_uso_planilha_original": 1.9
+    },
+    "2025-01": {
+      "vouchers_gerados_oficial": 15156,
+      "usuarios_unicos_oficial": 7980,
+      "frequencia_uso_oficial": 1.9,
+      "frequencia_uso_planilha_original": 1.9
+    },
+    "2025-02": {
+      "vouchers_gerados_oficial": 11541,
+      "usuarios_unicos_oficial": 6267,
+      "frequencia_uso_oficial": 1.84,
+      "frequencia_uso_planilha_original": 1.84
+    },
+    "2025-03": {
+      "vouchers_gerados_oficial": 15364,
+      "usuarios_unicos_oficial": 7857,
+      "frequencia_uso_oficial": 1.96,
+      "frequencia_uso_planilha_original": 1.96
+    },
+    "2025-04": {
+      "vouchers_gerados_oficial": 13708,
+      "usuarios_unicos_oficial": 6655,
+      "frequencia_uso_oficial": 2.06,
+      "frequencia_uso_planilha_original": 2.06
+    },
+    "2025-05": {
+      "vouchers_gerados_oficial": 16578,
+      "usuarios_unicos_oficial": 7966,
+      "frequencia_uso_oficial": 2.08,
+      "frequencia_uso_planilha_original": 2.08
+    },
+    "2025-06": {
+      "vouchers_gerados_oficial": 14206,
+      "usuarios_unicos_oficial": 6846,
+      "frequencia_uso_oficial": 2.08,
+      "frequencia_uso_planilha_original": 2.08
+    },
+    "2025-07": {
+      "vouchers_gerados_oficial": 15122,
+      "usuarios_unicos_oficial": 7590,
+      "frequencia_uso_oficial": 1.99,
+      "frequencia_uso_planilha_original": 1.99
+    },
+    "2025-08": {
+      "vouchers_gerados_oficial": 14884,
+      "usuarios_unicos_oficial": 7037,
+      "frequencia_uso_oficial": 2.12,
+      "frequencia_uso_planilha_original": 2.12
+    },
+    "2025-09": {
+      "vouchers_gerados_oficial": 14376,
+      "usuarios_unicos_oficial": 6633,
+      "frequencia_uso_oficial": 2.17,
+      "frequencia_uso_planilha_original": 2.17
+    },
+    "2025-10": {
+      "vouchers_gerados_oficial": 13014,
+      "usuarios_unicos_oficial": 6146,
+      "frequencia_uso_oficial": 2.12,
+      "frequencia_uso_planilha_original": 2.12
+    },
+    "2025-11": {
+      "vouchers_gerados_oficial": 15905,
+      "usuarios_unicos_oficial": 7375,
+      "frequencia_uso_oficial": 2.16,
+      "frequencia_uso_planilha_original": 2.16
+    },
+    "2025-12": {
+      "vouchers_gerados_oficial": 12615,
+      "usuarios_unicos_oficial": 6334,
+      "frequencia_uso_oficial": 1.99,
+      "frequencia_uso_planilha_original": 1.99
+    },
+    "2026-01": {
+      "vouchers_gerados_oficial": 15685,
+      "usuarios_unicos_oficial": 7757,
+      "frequencia_uso_oficial": 2.02,
+      "frequencia_uso_planilha_original": 2.02
+    },
+    "2026-02": {
+      "vouchers_gerados_oficial": 11643,
+      "usuarios_unicos_oficial": 5667,
+      "frequencia_uso_oficial": 2.05,
+      "frequencia_uso_planilha_original": 2.05
+    },
+    "2026-03": {
+      "vouchers_gerados_oficial": 14240,
+      "usuarios_unicos_oficial": 6902,
+      "frequencia_uso_oficial": 2.06,
+      "frequencia_uso_planilha_original": 2.06
+    },
+    "2026-04": {
+      "vouchers_gerados_oficial": 15897,
+      "usuarios_unicos_oficial": 7501,
+      "frequencia_uso_oficial": 2.12,
+      "frequencia_uso_planilha_original": 2.12
+    },
+    "2026-05": {
+      "vouchers_gerados_oficial": 16185,
+      "usuarios_unicos_oficial": 7396,
+      "frequencia_uso_oficial": 2.19,
+      "frequencia_uso_planilha_original": 2.19
+    },
+    "2026-06": {
+      "vouchers_gerados_oficial": 12900,
+      "usuarios_unicos_oficial": 6393,
+      "frequencia_uso_oficial": 2.02,
+      "frequencia_uso_planilha_original": 2.02
+    },
+    "2026-07": {
+      "vouchers_gerados_oficial": 15072,
+      "usuarios_unicos_oficial": 7388,
+      "frequencia_uso_oficial": 2.04,
+      "frequencia_uso_planilha_original": 2.04
+    },
+    "2026-08": {
+      "vouchers_gerados_oficial": 15908,
+      "usuarios_unicos_oficial": 7308,
+      "frequencia_uso_oficial": 2.18,
+      "frequencia_uso_planilha_original": 2.18
+    }
+  },
+  "avisos_normalizacao": [
+    "Linha com Mes/Ano inconsistente na planilha oficial: valor bruto Mes=datetime.datetime(2026, 6, 25, 0, 0) Ano=2025.0 -> interpretado como 2025-06 pela posicao na serie."
+  ],
+  "fonte": "TOTAL DE VOUCHERS.xlsx (dashboard oficial Alloyal, enviado por Stela em 17/09/2026)"
+}
