@@ -1,2 +1,7 @@
-supabase>=2.15.0
+# IMPORTANTE: precisa ser >=2.16.0. Versões <=2.15.3 validam a chave
+# passada em create_client() contra um regex de JWT e recusam o novo
+# formato de chave do Supabase (sb_secret_.../sb_publishable_...) com
+# "Invalid API key" -- mesmo quando a chave está certinha. Foi corrigido
+# na 2.16.0. (>=2.15.0 era insuficiente -- por isso o erro persistiu.)
+supabase>=2.16.0
 openpyxl==3.1.5
