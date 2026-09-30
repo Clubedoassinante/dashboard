@@ -1,0 +1,41 @@
+name: Backfill histórico do Clube (jul/2023-ago/2026)
+
+# Rodar UMA ÚNICA VEZ, depois de subir todos os arquivos de
+# backfill_staging para o bucket "uploads-planilhas" no Supabase
+# Storage (mantendo a estrutura de pastas por ano). Exige digitar
+# "CONFIRMAR" para evitar disparo acidental, já que reprocessa os 38
+# meses de uma vez.
+on:
+  workflow_dispatch:
+    inputs:
+      confirmacao:
+        description: 'Digite CONFIRMAR para rodar o backfill completo'
+        required: true
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Verificar confirmação
+        run: |
+          if [ "${{ github.event.inputs.confirmacao }}" != "CONFIRMAR" ]; then
+            echo "Confirmação incorreta -- cancelando para evitar rodar por engano."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependências
+        run: pip install -r etl/requirements.txt
+
+      - name: Rodar backfill histórico
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          CPF_PEPPER: ${{ secrets.CPF_PEPPER }}
+        run: python3 etl/backfill_historico.py
