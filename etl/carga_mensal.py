@@ -73,6 +73,8 @@ def carrega_carteira(caminho_local, ref_date, pepper, mes_referencia, arquivo_or
 
     registros = []
     descartadas_sem_situacao = 0
+    chaves_vistas = set()  # (cpf_hash, cdass) -- detecta duplicata exata na planilha
+    duplicatas_descartadas = 0
     for row in linhas:
         if row[0] is None and all(v is None for v in row):
             continue
@@ -89,6 +91,20 @@ def carrega_carteira(caminho_local, ref_date, pepper, mes_referencia, arquivo_or
         if cpf_norm is None:
             continue  # sem CPF válido -> não dá pra rastrear a pessoa, descarta
 
+        cpf_hash = cpf_para_hash(cpf_norm, pepper)
+        cdass_str = str(cdass) if cdass is not None else None
+
+        # Linha duplicada na planilha de origem (mesma pessoa + mesma
+        # assinatura aparecendo 2x no export) -- descarta a repetição em
+        # vez de derrubar a carga inteira na constraint única do banco.
+        # Mesma pessoa com CDASS diferente (2+ assinaturas no mês) continua
+        # permitida (ver bug #2 no Blueprint).
+        chave = (cpf_hash, cdass_str)
+        if chave in chaves_vistas:
+            duplicatas_descartadas += 1
+            continue
+        chaves_vistas.add(chave)
+
         data_assinatura_dt = data_assinatura if isinstance(data_assinatura, datetime.datetime) else None
         mes_entrada = (
             data_assinatura_dt.replace(day=1).date().isoformat()
@@ -97,8 +113,8 @@ def carrega_carteira(caminho_local, ref_date, pepper, mes_referencia, arquivo_or
 
         registros.append({
             "mes_referencia": mes_referencia,
-            "cpf_hash": cpf_para_hash(cpf_norm, pepper),
-            "cdass": str(cdass) if cdass is not None else None,
+            "cpf_hash": cpf_hash,
+            "cdass": cdass_str,
             "situacao_raw": situ_label,
             "situacao": classifica_situacao(situacao),
             "sigla_produto": (str(sigla_p).strip().upper() if sigla_p else "Indefinido"),
@@ -110,7 +126,8 @@ def carrega_carteira(caminho_local, ref_date, pepper, mes_referencia, arquivo_or
             "arquivo_origem": arquivo_origem,
         })
     print(f"  carteira: {len(registros)} registros com CPF válido "
-          f"({descartadas_sem_situacao} linhas descartadas sem situação)")
+          f"({descartadas_sem_situacao} linhas descartadas sem situação, "
+          f"{duplicatas_descartadas} linhas duplicadas na planilha descartadas)")
     return registros
 
 
