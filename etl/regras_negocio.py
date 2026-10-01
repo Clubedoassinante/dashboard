@@ -158,3 +158,32 @@ def classifica_situacao(v):
     if s in SITUACAO_CANCELADA:
         return "Cancelada"
     return "Outros/Indefinido"
+
+
+# ---------------------------------------------------------------------
+# A partir de maio/2024, a fonte de vouchers passou a chegar em CSV
+# (colunas: Nome, CPF, Marca, Título, Descrição do Cupom, Tipo de
+# Cupom, Data em texto pt-BR "31 de mai. de 2024", Produtos), diferente
+# do xlsx antigo usado em jul/2023-abr/2024. O ETL detecta o formato
+# pela extensão do arquivo (ver carga_mensal.py).
+# ---------------------------------------------------------------------
+MESES_PT = {
+    "jan": 1, "fev": 2, "mar": 3, "abr": 4, "mai": 5, "jun": 6,
+    "jul": 7, "ago": 8, "set": 9, "out": 10, "nov": 11, "dez": 12,
+}
+
+
+def parse_data_pt(texto):
+    if not texto:
+        return None
+    partes = str(texto).replace(".", "").strip().split(" de ")
+    if len(partes) != 3:
+        return None
+    dia_s, mes_s, ano_s = partes
+    mes = MESES_PT.get(mes_s.strip().lower()[:3])
+    if mes is None:
+        return None
+    try:
+        return datetime.datetime(int(ano_s), mes, int(dia_s))
+    except ValueError:
+        return None

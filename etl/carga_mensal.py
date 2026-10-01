@@ -27,6 +27,7 @@ Uso:
         [--manter-arquivo-storage]
 """
 import argparse
+import csv
 import datetime
 import hashlib
 import hmac
@@ -41,7 +42,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 from regras_negocio import (
     is_farmacia_excluida, detecta_sentinela_dinamica, faixa_etaria,
     faixa_tenure, safra_semestral, normaliza_cpf, mapeia_plano_familia,
-    classifica_situacao,
+    classifica_situacao, parse_data_pt,
 )
 
 BATCH_SIZE = 1000
@@ -112,19 +113,51 @@ def carrega_carteira(caminho_local, ref_date, pepper, mes_referencia, arquivo_or
     return registros
 
 
-def carrega_vouchers(caminho_local, ano, mes, pepper, mes_referencia, arquivo_origem, cpfs_hash_admin):
+def _linhas_voucher_xlsx(caminho_local):
+    """Formato antigo (jul/2023-abr/2024): xlsx, colunas
+    CPF, Marca, Titulo, Descricao, TipoCupom, Data (datetime binário)."""
     wb = openpyxl.load_workbook(caminho_local, read_only=True, data_only=True)
     ws = wb.active
-    registros = []
-    excl_farmacia = 0
-    excl_anomalia = 0
-    sem_cpf = 0
     for row in ws.iter_rows(min_row=2, values_only=True):
         if row[0] is None and all(v is None for v in row):
             continue
         cpf, marca, _titulo, _descricao, tipo_cupom, data = row[:6]
         if not isinstance(data, datetime.datetime):
             continue
+        yield cpf, marca, tipo_cupom, data
+    wb.close()
+
+
+def _linhas_voucher_csv(caminho_local):
+    """Formato novo (a partir de maio/2024): CSV, colunas
+    Nome, CPF, Marca, Título, Descrição do Cupom, Tipo de Cupom,
+    Data em texto pt-BR (ex: "31 de mai. de 2024"), Produtos."""
+    with open(caminho_local, encoding="utf-8") as f:
+        reader = csv.reader(f)
+        next(reader, None)  # cabeçalho
+        for row in reader:
+            if not row or all(not str(c).strip() for c in row):
+                continue
+            row = (list(row) + [None] * 8)[:8]
+            _nome, cpf, marca, _titulo, _descricao, tipo_cupom, data_txt, _produtos = row
+            data = parse_data_pt(data_txt)
+            if data is None:
+                continue
+            yield cpf, marca, tipo_cupom, data
+
+
+def carrega_vouchers(caminho_local, ano, mes, pepper, mes_referencia, arquivo_origem, cpfs_hash_admin):
+    extensao = os.path.splitext(caminho_local)[1].lower()
+    if extensao == ".csv":
+        linhas = _linhas_voucher_csv(caminho_local)
+    else:
+        linhas = _linhas_voucher_xlsx(caminho_local)
+
+    registros = []
+    excl_farmacia = 0
+    excl_anomalia = 0
+    sem_cpf = 0
+    for cpf, marca, tipo_cupom, data in linhas:
         if not (data.year == ano and data.month == mes):
             continue
         cpf_norm = normaliza_cpf(cpf)
@@ -153,9 +186,8 @@ def carrega_vouchers(caminho_local, ano, mes, pepper, mes_referencia, arquivo_or
             "motivo_exclusao": "conta_administrativa" if excluido_anomalia else None,
             "arquivo_origem": arquivo_origem,
         })
-    wb.close()
     liquido = len(registros) - excl_farmacia - excl_anomalia
-    print(f"  vouchers: {len(registros)} no mês (bruto pós-CPF), "
+    print(f"  vouchers (formato {extensao or 'xlsx'}): {len(registros)} no mês (bruto pós-CPF), "
           f"excl_farmacia={excl_farmacia}, excl_anomalia={excl_anomalia}, "
           f"liquido={liquido}, sem_cpf_valido={sem_cpf}")
     return registros
