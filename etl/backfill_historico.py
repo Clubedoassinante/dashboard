@@ -44,6 +44,14 @@ PLANO_ANO = {
 }
 
 
+def arquivo_existe_no_storage(supabase, bucket, path):
+    """Confere se um arquivo existe no Storage (sem baixar o conteúdo)."""
+    pasta = os.path.dirname(path)
+    nome = os.path.basename(path)
+    arquivos = supabase.storage.from_(bucket).list(pasta)
+    return any(a["name"] == nome for a in arquivos)
+
+
 def main():
     supabase_url = os.environ["SUPABASE_URL"]
     service_role_key = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
@@ -63,6 +71,20 @@ def main():
 
     for ano, meses in PLANO_ANO.items():
         vouchers_path_ano = f"{ano}/vouchers/{ano}.xlsx"
+
+        # Se esse script já rodou antes e concluiu esse ano inteiro com
+        # sucesso, o arquivo anual já foi removido do Storage ao final
+        # (ver limpeza no fim do loop de meses, abaixo). Reconhece esse
+        # caso e pula o ano inteiro, em vez de quebrar com "Object not
+        # found" -- permite re-rodar o backfill do zero com segurança
+        # depois de uma falha em um ano posterior, sem reprocessar (nem
+        # precisar re-subir arquivos de) anos já concluídos.
+        if not arquivo_existe_no_storage(supabase, BUCKET, vouchers_path_ano):
+            print(f"\n== Ano {ano}: {vouchers_path_ano} não existe mais no Storage -- "
+                  f"esse ano já foi concluído e limpo em uma rodada anterior. Pulando. ==")
+            processados += len(meses)
+            continue
+
         vouchers_local_ano = baixar_do_storage(supabase, BUCKET, vouchers_path_ano)
 
         for mes in meses:
