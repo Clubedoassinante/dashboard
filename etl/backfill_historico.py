@@ -27,18 +27,12 @@ sys.path.insert(0, os.path.dirname(__file__))
 from carga_mensal import (
     baixar_do_storage, carrega_carteira, carrega_vouchers, grava_em_lotes,
     apaga_mes_em_lotes, calcula_resumo, grava_resumo,
+    JANELA_MESES_DETALHE, soma_meses, mantem_janela_detalhe,
 )
 from supabase import create_client
 import datetime
 
 BUCKET = "uploads-planilhas"
-
-# Decisão de Stela (01/10/2026): detalhe linha a linha (cpf_hash por
-# assinatura/voucher) só é mantido a partir deste ano -- meses mais
-# antigos ficam só com o resumo agregado (ver 008_resumo_mensal.sql).
-# Resolve o limite de armazenamento do Supabase, que o histórico
-# completo em detalhe cru não cabia (ver Blueprint, bug #6).
-ANO_INICIO_DETALHE = 2026
 
 MESES_2023 = list(range(7, 13))
 MESES_PADRAO = list(range(1, 13))
@@ -50,6 +44,13 @@ PLANO_ANO = {
     2025: MESES_PADRAO,
     2026: MESES_2026,
 }
+
+# Último mês coberto por este backfill -- usado pra decidir, por mês,
+# se ele cai dentro da janela móvel de detalhe cru (ver
+# JANELA_MESES_DETALHE em carga_mensal.py e Blueprint, bug #8).
+_ultimo_ano = max(PLANO_ANO)
+ULTIMO_MES_BACKFILL = f"{_ultimo_ano:04d}-{max(PLANO_ANO[_ultimo_ano]):02d}-01"
+CUTOFF_DETALHE = soma_meses(ULTIMO_MES_BACKFILL, -(JANELA_MESES_DETALHE - 1))
 
 
 def arquivo_existe_no_storage(supabase, bucket, path):
@@ -136,14 +137,14 @@ def main():
             )
             grava_resumo(supabase, mes_referencia, kpis, composicao_rows, quem_gerou_rows)
 
-            if ano >= ANO_INICIO_DETALHE:
+            if mes_referencia >= CUTOFF_DETALHE:
                 apaga_mes_em_lotes(supabase, "carteira_mensal", mes_referencia)
                 apaga_mes_em_lotes(supabase, "vouchers_detalhados", mes_referencia)
                 grava_em_lotes(supabase, "carteira_mensal", registros_carteira)
                 grava_em_lotes(supabase, "vouchers_detalhados", registros_vouchers)
             else:
-                print(f"  (mês anterior a {ANO_INICIO_DETALHE}: só o resumo foi gravado, "
-                      f"sem detalhe linha a linha -- ver decisão de 01/10/2026)")
+                print(f"  (fora da janela de {JANELA_MESES_DETALHE} meses: só o resumo foi "
+                      f"gravado, sem detalhe linha a linha -- ver Blueprint, bug #8)")
 
             if of:
                 supabase.table("vouchers_oficial_mensal").upsert({
@@ -165,6 +166,15 @@ def main():
         carteira_paths_ano = [f"{ano}/carteira/{ano}-{m:02d}.xlsx" for m in meses]
         supabase.storage.from_(BUCKET).remove(carteira_paths_ano)
         print(f"Arquivos de {ano} removidos do Storage.")
+
+    # Varredura final: garante que nenhum mês fora da janela ficou com
+    # detalhe cru no banco -- cobre tanto o caso normal quanto o caso de
+    # já ter rodado antes sob uma janela/regra diferente (como aconteceu
+    # em 01/10/2026: os 8 meses de 2026 tinham sido carregados com
+    # detalhe cru sob a regra antiga de "ano calendário inteiro", e essa
+    # chamada é o que efetivamente arquiva jan/fev-2026, que ficaram de
+    # fora da janela de 6 meses).
+    mantem_janela_detalhe(supabase, ULTIMO_MES_BACKFILL)
 
     print(f"\n== Backfill histórico concluído: {processados}/{total_meses} meses ==")
 

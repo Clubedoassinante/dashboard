@@ -48,6 +48,26 @@ from regras_negocio import (
 
 BATCH_SIZE = 1000
 
+# Janela móvel de detalhe linha a linha (cpf_hash por assinatura/voucher).
+# Decisão de 01/10/2026, revista no mesmo dia (ver Blueprint, bug #8):
+# a primeira versão usava um corte fixo de ano calendário (só 2026 em
+# diante guardava detalhe cru), mas 8 meses de 2026 já ocuparam 360MB
+# -- um ano inteiro (12 meses) estouraria os 500MB do plano gratuito de
+# novo antes do ano terminar, e o problema se repetiria todo ano
+# seguinte. Trocado por uma janela que anda sozinha: sempre os últimos
+# N meses têm detalhe cru, o resto vira só resumo agregado -- sem
+# precisar de uma decisão manual nova a cada ano.
+JANELA_MESES_DETALHE = 6
+
+
+def soma_meses(mes_referencia, deslocamento):
+    """Desloca uma data 'AAAA-MM-01' em N meses (deslocamento pode ser
+    negativo) e devolve no mesmo formato 'AAAA-MM-01'."""
+    ano, mes, _ = (int(p) for p in mes_referencia.split("-"))
+    total = ano * 12 + (mes - 1) + deslocamento
+    novo_ano, novo_mes = divmod(total, 12)
+    return f"{novo_ano:04d}-{novo_mes + 1:02d}-01"
+
 
 def cpf_para_hash(cpf_normalizado, pepper):
     return hmac.new(pepper.encode(), cpf_normalizado.encode(), hashlib.sha256).hexdigest()
@@ -249,6 +269,42 @@ def apaga_mes_em_lotes(supabase, tabela, mes_referencia, lote=BATCH_SIZE):
         print(f"  {tabela}: {total} linhas antigas apagadas (em lotes de {lote})")
 
 
+def apaga_antes_de_em_lotes(supabase, tabela, cutoff_mes_referencia, lote=BATCH_SIZE):
+    """Como apaga_mes_em_lotes, mas apaga tudo ANTES de uma data de
+    corte (em vez de igual a um mês específico) -- usado pra manter a
+    janela móvel de detalhe cru (ver JANELA_MESES_DETALHE). Também em
+    lotes, pelo mesmo motivo do statement_timeout."""
+    total = 0
+    while True:
+        linhas = (
+            supabase.table(tabela)
+            .select("id")
+            .lt("mes_referencia", cutoff_mes_referencia)
+            .limit(lote)
+            .execute()
+            .data
+        )
+        if not linhas:
+            break
+        ids = [r["id"] for r in linhas]
+        supabase.table(tabela).delete().in_("id", ids).execute()
+        total += len(ids)
+    if total:
+        print(f"  {tabela}: {total} linhas de mês(es) fora da janela (antes de "
+              f"{cutoff_mes_referencia}) apagadas")
+
+
+def mantem_janela_detalhe(supabase, mes_mais_recente, janela_meses=JANELA_MESES_DETALHE):
+    """Arquiva (apaga o detalhe cru de) qualquer mês mais antigo que a
+    janela móvel permite. Só apaga -- o resumo agregado desses meses já
+    foi gravado antes (grava_resumo roda pra TODO mês, sempre, não só
+    pros que ficam na janela), então não tem cálculo a refazer."""
+    cutoff = soma_meses(mes_mais_recente, -(janela_meses - 1))
+    print(f"Mantendo janela de {janela_meses} meses de detalhe cru (corte: antes de {cutoff})...")
+    apaga_antes_de_em_lotes(supabase, "carteira_mensal", cutoff)
+    apaga_antes_de_em_lotes(supabase, "vouchers_detalhados", cutoff)
+
+
 DIMENSOES_COMPOSICAO = [
     ("produto", "sigla_produto"),
     ("plano_familia", "plano_familia"),
@@ -399,6 +455,8 @@ def main():
     print("Gravando detalhe cru no banco...")
     grava_em_lotes(supabase, "carteira_mensal", registros_carteira)
     grava_em_lotes(supabase, "vouchers_detalhados", registros_vouchers)
+
+    mantem_janela_detalhe(supabase, mes_referencia)
 
     if args.oficial_vouchers is not None:
         supabase.table("vouchers_oficial_mensal").upsert({
