@@ -26,12 +26,19 @@ import sys
 sys.path.insert(0, os.path.dirname(__file__))
 from carga_mensal import (
     baixar_do_storage, carrega_carteira, carrega_vouchers, grava_em_lotes,
-    apaga_mes_em_lotes,
+    apaga_mes_em_lotes, calcula_resumo, grava_resumo,
 )
 from supabase import create_client
 import datetime
 
 BUCKET = "uploads-planilhas"
+
+# Decisão de Stela (01/10/2026): detalhe linha a linha (cpf_hash por
+# assinatura/voucher) só é mantido a partir deste ano -- meses mais
+# antigos ficam só com o resumo agregado (ver 008_resumo_mensal.sql).
+# Resolve o limite de armazenamento do Supabase, que o histórico
+# completo em detalhe cru não cabia (ver Blueprint, bug #6).
+ANO_INICIO_DETALHE = 2026
 
 MESES_2023 = list(range(7, 13))
 MESES_PADRAO = list(range(1, 13))
@@ -120,12 +127,24 @@ def main():
                     vouchers_path_ano, cpfs_hash_admin,
                 )
 
-            apaga_mes_em_lotes(supabase, "carteira_mensal", mes_referencia)
-            apaga_mes_em_lotes(supabase, "vouchers_detalhados", mes_referencia)
-            grava_em_lotes(supabase, "carteira_mensal", registros_carteira)
-            grava_em_lotes(supabase, "vouchers_detalhados", registros_vouchers)
-
             of = oficial.get(mes_referencia[:7])
+            kpis, composicao_rows, quem_gerou_rows = calcula_resumo(
+                registros_carteira, registros_vouchers, mes_referencia,
+                of["vouchers_gerados_oficial"] if of else None,
+                of["usuarios_unicos_oficial"] if of else None,
+                of["frequencia_uso_oficial"] if of else None,
+            )
+            grava_resumo(supabase, mes_referencia, kpis, composicao_rows, quem_gerou_rows)
+
+            if ano >= ANO_INICIO_DETALHE:
+                apaga_mes_em_lotes(supabase, "carteira_mensal", mes_referencia)
+                apaga_mes_em_lotes(supabase, "vouchers_detalhados", mes_referencia)
+                grava_em_lotes(supabase, "carteira_mensal", registros_carteira)
+                grava_em_lotes(supabase, "vouchers_detalhados", registros_vouchers)
+            else:
+                print(f"  (mês anterior a {ANO_INICIO_DETALHE}: só o resumo foi gravado, "
+                      f"sem detalhe linha a linha -- ver decisão de 01/10/2026)")
+
             if of:
                 supabase.table("vouchers_oficial_mensal").upsert({
                     "mes_referencia": mes_referencia,

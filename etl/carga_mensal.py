@@ -34,6 +34,7 @@ import hmac
 import os
 import sys
 import tempfile
+from collections import Counter
 
 import openpyxl
 from supabase import create_client
@@ -231,6 +232,89 @@ def apaga_mes_em_lotes(supabase, tabela, mes_referencia, lote=BATCH_SIZE):
         print(f"  {tabela}: {total} linhas antigas apagadas (em lotes de {lote})")
 
 
+DIMENSOES_COMPOSICAO = [
+    ("produto", "sigla_produto"),
+    ("plano_familia", "plano_familia"),
+    ("faixa_etaria", "faixa_etaria"),
+    ("faixa_tenure", "faixa_tenure"),
+    ("safra_semestral", "safra_semestral"),
+]
+
+
+def calcula_resumo(registros_carteira, registros_vouchers, mes_referencia,
+                    oficial_vouchers=None, oficial_usuarios=None, oficial_frequencia=None):
+    """Calcula os 3 resumos agregados (kpis, composição, quem-gerou-por-
+    dimensão) a partir dos registros já em memória -- sem precisar
+    consultar o banco. Mesma lógica das views antigas (002_views.sql),
+    agora pré-calculada e gravada em tabela em vez de somada em tempo
+    real a cada consulta (ver 008_resumo_mensal.sql)."""
+    ativos = [r for r in registros_carteira if r["situacao"] == "Ativa"]
+    canceladas = sum(1 for r in registros_carteira if r["situacao"] == "Cancelada")
+    novos_assinantes = sum(1 for r in ativos if r["mes_entrada"] == mes_referencia)
+    plano_familia_ativo = sum(1 for r in ativos if r["plano_familia"] == "Ativo")
+    carteira_ativa = len(ativos)
+    plano_familia_ativo_pct = (
+        round(plano_familia_ativo / carteira_ativa * 100, 2) if carteira_ativa else None
+    )
+
+    liquidos = [v for v in registros_vouchers if not v["excluido_farmacia"] and not v["excluido_anomalia"]]
+    vouchers_liquidos = len(liquidos)
+    geradores_cpf = {v["cpf_hash"] for v in liquidos}
+    usuarios_unicos_geradores = len(geradores_cpf)
+    penetracao_pct = (
+        round(usuarios_unicos_geradores / carteira_ativa * 100, 2) if carteira_ativa else None
+    )
+
+    kpis = {
+        "mes_referencia": mes_referencia,
+        "carteira_ativa": carteira_ativa,
+        "canceladas": canceladas,
+        "novos_assinantes": novos_assinantes,
+        "plano_familia_ativo_pct": plano_familia_ativo_pct,
+        "vouchers_liquidos": vouchers_liquidos,
+        "usuarios_unicos_geradores": usuarios_unicos_geradores,
+        "penetracao_pct": penetracao_pct,
+        "vouchers_gerados_oficial": oficial_vouchers,
+        "usuarios_unicos_oficial": oficial_usuarios,
+        "frequencia_uso_oficial": oficial_frequencia,
+    }
+
+    composicao_rows = []
+    quem_gerou_rows = []
+    for dimensao, campo in DIMENSOES_COMPOSICAO:
+        contagem_total = Counter()
+        contagem_geradores = Counter()
+        for r in ativos:
+            categoria = r[campo]
+            contagem_total[categoria] += 1
+            if r["cpf_hash"] in geradores_cpf:
+                contagem_geradores[categoria] += 1
+        for categoria, total in contagem_total.items():
+            composicao_rows.append({
+                "mes_referencia": mes_referencia, "dimensao": dimensao,
+                "categoria": categoria, "qtd": total,
+            })
+            quem_gerou_rows.append({
+                "mes_referencia": mes_referencia, "dimensao": dimensao,
+                "categoria": categoria, "carteira_ativa": total,
+                "geradores": contagem_geradores.get(categoria, 0),
+            })
+
+    return kpis, composicao_rows, quem_gerou_rows
+
+
+def grava_resumo(supabase, mes_referencia, kpis, composicao_rows, quem_gerou_rows):
+    supabase.table("resumo_kpis_mensal").upsert(kpis).execute()
+    supabase.table("resumo_composicao_mensal").delete().eq("mes_referencia", mes_referencia).execute()
+    if composicao_rows:
+        supabase.table("resumo_composicao_mensal").insert(composicao_rows).execute()
+    supabase.table("resumo_quem_gerou_mensal").delete().eq("mes_referencia", mes_referencia).execute()
+    if quem_gerou_rows:
+        supabase.table("resumo_quem_gerou_mensal").insert(quem_gerou_rows).execute()
+    print(f"  resumo: kpis + {len(composicao_rows)} linhas de composição + "
+          f"{len(quem_gerou_rows)} linhas de quem-gerou")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--ano", type=int, required=True)
@@ -284,11 +368,18 @@ def main():
     # substitui por completo os dados desse mes (reprocessamento idempotente,
     # igual ao pipeline antigo -- rodar de novo o mesmo mes so troca os dados,
     # nunca duplica)
+    print("Calculando e gravando o resumo agregado (alimenta o dashboard)...")
+    kpis, composicao_rows, quem_gerou_rows = calcula_resumo(
+        registros_carteira, registros_vouchers, mes_referencia,
+        args.oficial_vouchers, args.oficial_usuarios, args.oficial_frequencia,
+    )
+    grava_resumo(supabase, mes_referencia, kpis, composicao_rows, quem_gerou_rows)
+
     print("Limpando dados antigos deste mês (se houver, para reprocessamento seguro)...")
     apaga_mes_em_lotes(supabase, "carteira_mensal", mes_referencia)
     apaga_mes_em_lotes(supabase, "vouchers_detalhados", mes_referencia)
 
-    print("Gravando no banco...")
+    print("Gravando detalhe cru no banco...")
     grava_em_lotes(supabase, "carteira_mensal", registros_carteira)
     grava_em_lotes(supabase, "vouchers_detalhados", registros_vouchers)
 
