@@ -26,6 +26,7 @@ import sys
 sys.path.insert(0, os.path.dirname(__file__))
 from carga_mensal import (
     baixar_do_storage, carrega_carteira, carrega_vouchers, grava_em_lotes,
+    apaga_mes_em_lotes,
 )
 from supabase import create_client
 import datetime
@@ -119,8 +120,8 @@ def main():
                     vouchers_path_ano, cpfs_hash_admin,
                 )
 
-            supabase.table("carteira_mensal").delete().eq("mes_referencia", mes_referencia).execute()
-            supabase.table("vouchers_detalhados").delete().eq("mes_referencia", mes_referencia).execute()
+            apaga_mes_em_lotes(supabase, "carteira_mensal", mes_referencia)
+            apaga_mes_em_lotes(supabase, "vouchers_detalhados", mes_referencia)
             grava_em_lotes(supabase, "carteira_mensal", registros_carteira)
             grava_em_lotes(supabase, "vouchers_detalhados", registros_vouchers)
 

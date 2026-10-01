@@ -200,6 +200,37 @@ def grava_em_lotes(supabase, tabela, registros):
     print(f"  {tabela}: {len(registros)} linhas gravadas")
 
 
+def apaga_mes_em_lotes(supabase, tabela, mes_referencia, lote=BATCH_SIZE):
+    """Apaga as linhas de um mes_referencia em lotes de `id`, em vez de um
+    único DELETE ... WHERE mes_referencia = X.
+
+    Achado no backfill (30/09/2026): conforme as tabelas crescem com o
+    histórico acumulado, um DELETE de um mês inteiro de uma vez só pode
+    passar do statement_timeout da API do Supabase (erro 57014,
+    "canceling statement due to statement timeout") mesmo filtrando por
+    um índice. Apagar em lotes pequenos mantém cada operação individual
+    rápida o suficiente, não importa o tamanho que a tabela alcance com
+    o tempo -- importante também para a carga mensal recorrente, não só
+    para o backfill."""
+    total = 0
+    while True:
+        linhas = (
+            supabase.table(tabela)
+            .select("id")
+            .eq("mes_referencia", mes_referencia)
+            .limit(lote)
+            .execute()
+            .data
+        )
+        if not linhas:
+            break
+        ids = [r["id"] for r in linhas]
+        supabase.table(tabela).delete().in_("id", ids).execute()
+        total += len(ids)
+    if total:
+        print(f"  {tabela}: {total} linhas antigas apagadas (em lotes de {lote})")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--ano", type=int, required=True)
@@ -254,8 +285,8 @@ def main():
     # igual ao pipeline antigo -- rodar de novo o mesmo mes so troca os dados,
     # nunca duplica)
     print("Limpando dados antigos deste mês (se houver, para reprocessamento seguro)...")
-    supabase.table("carteira_mensal").delete().eq("mes_referencia", mes_referencia).execute()
-    supabase.table("vouchers_detalhados").delete().eq("mes_referencia", mes_referencia).execute()
+    apaga_mes_em_lotes(supabase, "carteira_mensal", mes_referencia)
+    apaga_mes_em_lotes(supabase, "vouchers_detalhados", mes_referencia)
 
     print("Gravando no banco...")
     grava_em_lotes(supabase, "carteira_mensal", registros_carteira)
