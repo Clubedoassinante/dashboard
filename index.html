@@ -209,6 +209,8 @@ select.mini-select {
   background: var(--page-plane); color: var(--text-primary);
 }
 .filtro-bar .sep { color: var(--muted); margin: 0 2px; }
+.filtro-bar .mini-label { color: var(--muted); font-size: 12px; margin: 0 1px; }
+.filtro-bar .grupo-periodo { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 </style>
 </head>
 <body>
@@ -853,6 +855,42 @@ function totaisDoPeriodo(meses) {
   };
 }
 
+// Mesma ideia de totaisDoPeriodo, mas com os nomes de campo que a tabela de
+// comparação (tabelaComparacao) espera -- usado pelo filtro livre de
+// comparação (renderFiltroComparacaoLivre) pra poder comparar tanto um mês
+// só (início == fim) quanto um intervalo de vários meses seguidos, sem
+// precisar de uma função nova no banco: os dados já estão todos carregados
+// no navegador (SERIE_KPIS), então soma/média local é suficiente.
+function totaisComparacao(meses) {
+  const soma = (campo) => meses.reduce((acc, r) => acc + (r[campo] || 0), 0);
+  const media = (campo) => mediaSimples(meses.map(r => r[campo]));
+  return {
+    carteira_ativa: meses[meses.length - 1].carteira_ativa,
+    canceladas: soma('canceladas'),
+    novos_assinantes: soma('novos_assinantes'),
+    vouchers_liquidos: soma('vouchers_liquidos'),
+    usuarios_unicos_geradores: soma('usuarios_unicos_geradores'),
+    penetracao_pct: media('penetracao_pct'),
+  };
+}
+
+// Monta as linhas no mesmo formato que fn_comparacao_periodos devolveria,
+// pra poder reaproveitar tabelaComparacao() sem alterações.
+function linhasComparacaoLocal(valoresA, valoresB) {
+  const metricas = ['carteira_ativa', 'canceladas', 'novos_assinantes', 'vouchers_liquidos', 'usuarios_unicos_geradores'];
+  const rows = metricas.map(m => {
+    const a = valoresA[m], b = valoresB[m];
+    return { metrica: m, valor_a: a, valor_b: b, delta_abs: b - a, delta_pct: a ? Math.round((b - a) / a * 10000) / 100 : null };
+  });
+  const pA = valoresA.penetracao_pct, pB = valoresB.penetracao_pct;
+  rows.push({
+    metrica: 'penetracao_pct', valor_a: pA, valor_b: pB,
+    delta_abs: (pA !== null && pB !== null) ? Math.round((pB - pA) * 100) / 100 : null,
+    delta_pct: null,
+  });
+  return rows;
+}
+
 async function renderAcumuladoAno(anoSelecionado) {
   destroyCharts();
   const mainAnual = document.getElementById('main-anual');
@@ -937,7 +975,7 @@ async function renderAcumuladoAno(anoSelecionado) {
   }
 
   // ---- 4. Comparar dois períodos quaisquer (mês/ano x mês/ano livre) ----
-  sectionTitle(mainAnual, 'sec-acum-comparar', '4', 'Comparar dois períodos quaisquer', 'Escolha mês e ano de cada lado -- dá pra comparar meses do mesmo ano, de anos diferentes, ou qualquer combinação.');
+  sectionTitle(mainAnual, 'sec-acum-comparar', '4', 'Comparar dois períodos quaisquer', 'Escolha o ano e o intervalo de meses de cada lado -- selecione o mesmo mês em "de" e "até" pra comparar um mês só, ou meses diferentes pra comparar vários meses seguidos. Dá pra comparar períodos do mesmo ano, de anos diferentes, ou qualquer combinação.');
   renderFiltroComparacaoLivre(mainAnual.querySelector('#sec-acum-comparar'));
 
   // ---- Nota de escopo ----
@@ -945,11 +983,12 @@ async function renderAcumuladoAno(anoSelecionado) {
     <ul>
       <li>Os totais e médias do ano são calculados aqui a partir dos meses de resumo (v_kpis_mensal) -- funcionam pra qualquer ano desde jul/2023.</li>
       <li>"Usuários únicos geradores no ano" é deduplicado de verdade (cada pessoa conta 1x, mesmo gerando voucher em vários meses) -- precisa de uma função nova no banco (ver Blueprint); se aparecer "—", ela ainda não foi aplicada/backfilled neste projeto Supabase.</li>
+      <li>No filtro livre de comparação (item 4), quando o período escolhido tem mais de um mês, a linha "Usuários únicos geradores" da tabela é uma soma simples mês a mês (pode contar a mesma pessoa mais de uma vez, se ela gerou voucher em mais de um mês do período) -- quem é deduplicado de verdade é o card "Usuários únicos no intervalo (deduplicado)" logo abaixo da tabela.</li>
       <li>Esta versão não inclui ainda o mapa de calor mês a mês nem o scorecard de evolução multi-ano do painel consolidado antigo -- avise se quiser que eu adicione.</li>
     </ul>`));
 }
 
-let filtroLivre = null; // { anoA, mesA, anoB, mesB } -- mantém a última escolha ao trocar de ano/aba
+let filtroLivre = null; // { anoA, mesIniA, mesFimA, anoB, mesIniB, mesFimB } -- mantém a última escolha ao trocar de ano/aba
 
 function renderFiltroComparacaoLivre(container) {
   const bar = el('div', 'filtro-bar');
@@ -959,60 +998,106 @@ function renderFiltroComparacaoLivre(container) {
   if (!filtroLivre) {
     const b = MES_KEYS[MES_KEYS.length - 1];
     const a = MES_KEYS[Math.max(0, MES_KEYS.length - 13)];
-    filtroLivre = { anoA: anoDoMes(a), mesA: a.slice(5, 7), anoB: anoDoMes(b), mesB: b.slice(5, 7) };
+    filtroLivre = {
+      anoA: anoDoMes(a), mesIniA: a.slice(5, 7), mesFimA: a.slice(5, 7),
+      anoB: anoDoMes(b), mesIniB: b.slice(5, 7), mesFimB: b.slice(5, 7),
+    };
   }
 
+  // Duas caixas de mês por lado (início/até) -- selecionar o mesmo mês nas
+  // duas compara um mês só (como antes); meses diferentes comparam o
+  // intervalo inteiro (soma/média local, ver totaisComparacao).
   bar.innerHTML = `
     <label>Comparar</label>
-    <select id="cl-mes-a"></select>
-    <select id="cl-ano-a"></select>
+    <div class="grupo-periodo">
+      <select id="cl-ano-a"></select>
+      <span class="mini-label">de</span>
+      <select id="cl-mes-a-ini"></select>
+      <span class="mini-label">até</span>
+      <select id="cl-mes-a-fim"></select>
+    </div>
     <span class="sep">vs.</span>
-    <select id="cl-mes-b"></select>
-    <select id="cl-ano-b"></select>
+    <div class="grupo-periodo">
+      <select id="cl-ano-b"></select>
+      <span class="mini-label">de</span>
+      <select id="cl-mes-b-ini"></select>
+      <span class="mini-label">até</span>
+      <select id="cl-mes-b-fim"></select>
+    </div>
   `;
   container.appendChild(bar);
 
-  const selMesA = bar.querySelector('#cl-mes-a'), selAnoA = bar.querySelector('#cl-ano-a');
-  const selMesB = bar.querySelector('#cl-mes-b'), selAnoB = bar.querySelector('#cl-ano-b');
+  const selAnoA = bar.querySelector('#cl-ano-a'), selMesIniA = bar.querySelector('#cl-mes-a-ini'), selMesFimA = bar.querySelector('#cl-mes-a-fim');
+  const selAnoB = bar.querySelector('#cl-ano-b'), selMesIniB = bar.querySelector('#cl-mes-b-ini'), selMesFimB = bar.querySelector('#cl-mes-b-fim');
   const anoOpts = anos.map(a => `<option value="${a}">${a}</option>`).join('');
   selAnoA.innerHTML = anoOpts; selAnoB.innerHTML = anoOpts;
   selAnoA.value = filtroLivre.anoA; selAnoB.value = filtroLivre.anoB;
 
-  function popularMeses(sel, ano, mesPreferido) {
+  function popularMeses(selIni, selFim, ano, mesIniPreferido, mesFimPreferido) {
     const meses = mesesDisponiveisPorAno(ano);
-    sel.innerHTML = meses.map(m => `<option value="${m}">${MES_NOMES[m]}</option>`).join('');
-    sel.value = meses.includes(mesPreferido) ? mesPreferido : meses[meses.length - 1];
+    const optsHtml = meses.map(m => `<option value="${m}">${MES_NOMES[m]}</option>`).join('');
+    selIni.innerHTML = optsHtml;
+    selFim.innerHTML = optsHtml;
+    selIni.value = meses.includes(mesIniPreferido) ? mesIniPreferido : meses[0];
+    selFim.value = meses.includes(mesFimPreferido) ? mesFimPreferido : meses[meses.length - 1];
   }
-  popularMeses(selMesA, filtroLivre.anoA, filtroLivre.mesA);
-  popularMeses(selMesB, filtroLivre.anoB, filtroLivre.mesB);
+  popularMeses(selMesIniA, selMesFimA, filtroLivre.anoA, filtroLivre.mesIniA, filtroLivre.mesFimA);
+  popularMeses(selMesIniB, selMesFimB, filtroLivre.anoB, filtroLivre.mesIniB, filtroLivre.mesFimB);
 
   const resultadoDiv = el('div', 'chart-grid');
   container.appendChild(resultadoDiv);
 
+  // Monta a lista de meses (registros de SERIE_KPIS) entre início e fim,
+  // dentro do ano escolhido pro lado -- aceita início/fim em qualquer
+  // ordem (inverte sozinho se a pessoa escolher "até" antes de "de").
+  function periodoDoLado(ano, mesIni, mesFim) {
+    const [ini, fim] = mesIni <= mesFim ? [mesIni, mesFim] : [mesFim, mesIni];
+    const chaveIni = `${ano}-${ini}-01`, chaveFim = `${ano}-${fim}-01`;
+    const meses = SERIE_KPIS.filter(r => r.mes_referencia >= chaveIni && r.mes_referencia <= chaveFim);
+    return { meses, chaveIni, chaveFim };
+  }
+
   async function atualizar() {
-    filtroLivre = { anoA: selAnoA.value, mesA: selMesA.value, anoB: selAnoB.value, mesB: selMesB.value };
-    const mesAKey = `${filtroLivre.anoA}-${filtroLivre.mesA}-01`;
-    const mesBKey = `${filtroLivre.anoB}-${filtroLivre.mesB}-01`;
+    filtroLivre = {
+      anoA: selAnoA.value, mesIniA: selMesIniA.value, mesFimA: selMesFimA.value,
+      anoB: selAnoB.value, mesIniB: selMesIniB.value, mesFimB: selMesFimB.value,
+    };
+    const { meses: mesesA, chaveIni: iniA, chaveFim: fimA } = periodoDoLado(filtroLivre.anoA, filtroLivre.mesIniA, filtroLivre.mesFimA);
+    const { meses: mesesB, chaveIni: iniB, chaveFim: fimB } = periodoDoLado(filtroLivre.anoB, filtroLivre.mesIniB, filtroLivre.mesFimB);
+
+    if (!mesesA.length || !mesesB.length) {
+      resultadoDiv.innerHTML = '<div class="callout aviso"><h3>Sem dados para um dos períodos escolhidos</h3></div>';
+      return;
+    }
+
+    const labelA = iniA === fimA ? fmtMesLabel(iniA) : `${fmtMesLabel(iniA)} a ${fmtMesLabel(fimA)}`;
+    const labelB = iniB === fimB ? fmtMesLabel(iniB) : `${fmtMesLabel(iniB)} a ${fmtMesLabel(fimB)}`;
+
     resultadoDiv.innerHTML = '<div class="carregando">Calculando...</div>';
+
+    const valoresA = totaisComparacao(mesesA);
+    const valoresB = totaisComparacao(mesesB);
+    const linhas = linhasComparacaoLocal(valoresA, valoresB);
+    resultadoDiv.innerHTML = '';
+    resultadoDiv.appendChild(tabelaComparacao(`${labelB} vs. ${labelA}`, linhas));
+
+    // Usuários únicos deduplicados no intervalo que cobre os dois lados
+    // inteiros (do começo do período mais cedo ao fim do período mais
+    // tarde) -- generaliza o card que já existia pra comparação de mês
+    // único.
+    const inicioGeral = [iniA, iniB].sort()[0];
+    const fimGeral = [fimA, fimB].sort()[1];
     try {
-      const dados = await rpcComparacao(mesAKey, mesBKey);
-      resultadoDiv.innerHTML = '';
-      resultadoDiv.appendChild(tabelaComparacao(`${fmtMesLabel(mesBKey)} vs. ${fmtMesLabel(mesAKey)}`, dados));
-      const [inicio, fim] = mesAKey <= mesBKey ? [mesAKey, mesBKey] : [mesBKey, mesAKey];
-      try {
-        const unicos = await rpcUsuariosUnicos(inicio, fim);
-        resultadoDiv.appendChild(kpiCard('Usuários únicos no intervalo (deduplicado)', fmtInt(unicos), `${fmtMesLabel(inicio)} a ${fmtMesLabel(fim)}, cada pessoa 1x`));
-      } catch (e) {
-        // função nova (ver 008_usuarios_unicos_periodo.sql) pode ainda não existir -- não quebra o resto da comparação
-      }
+      const unicos = await rpcUsuariosUnicos(inicioGeral, fimGeral);
+      resultadoDiv.appendChild(kpiCard('Usuários únicos no intervalo (deduplicado)', fmtInt(unicos), `${fmtMesLabel(inicioGeral)} a ${fmtMesLabel(fimGeral)}, cada pessoa 1x`));
     } catch (e) {
-      resultadoDiv.innerHTML = `<div class="callout aviso"><h3>Não foi possível comparar</h3><p style="margin:0">${e.message || e}</p></div>`;
+      // função nova (ver 008_usuarios_unicos_periodo.sql) pode ainda não existir -- não quebra o resto da comparação
     }
   }
 
-  [selMesA, selAnoA, selMesB, selAnoB].forEach(sel => sel.addEventListener('change', () => {
-    if (sel === selAnoA) popularMeses(selMesA, selAnoA.value, selMesA.value);
-    if (sel === selAnoB) popularMeses(selMesB, selAnoB.value, selMesB.value);
+  [selAnoA, selMesIniA, selMesFimA, selAnoB, selMesIniB, selMesFimB].forEach(sel => sel.addEventListener('change', () => {
+    if (sel === selAnoA) popularMeses(selMesIniA, selMesFimA, selAnoA.value, selMesIniA.value, selMesFimA.value);
+    if (sel === selAnoB) popularMeses(selMesIniB, selMesFimB, selAnoB.value, selMesIniB.value, selMesFimB.value);
     atualizar();
   }));
 
