@@ -4,235 +4,352 @@
       "vouchers_gerados_oficial": 3219,
       "usuarios_unicos_oficial": 1585,
       "frequencia_uso_oficial": 2.03,
-      "frequencia_uso_planilha_original": 2.03
+      "frequencia_uso_planilha_original": 2.03,
+      "carteira_clube_oficial": 86320,
+      "penetracao_oficial_pct": 1.84,
+      "media_uso_dia_oficial": 111
     },
     "2023-07": {
       "vouchers_gerados_oficial": 8659,
       "usuarios_unicos_oficial": 4222,
       "frequencia_uso_oficial": 2.05,
-      "frequencia_uso_planilha_original": 2.05
+      "frequencia_uso_planilha_original": 2.05,
+      "carteira_clube_oficial": 87143,
+      "penetracao_oficial_pct": 4.84,
+      "media_uso_dia_oficial": 299
     },
     "2023-08": {
       "vouchers_gerados_oficial": 9469,
       "usuarios_unicos_oficial": 4433,
       "frequencia_uso_oficial": 2.14,
-      "frequencia_uso_planilha_original": 2.14
+      "frequencia_uso_planilha_original": 2.14,
+      "carteira_clube_oficial": 86520,
+      "penetracao_oficial_pct": 5.12,
+      "media_uso_dia_oficial": 327
     },
     "2023-09": {
       "vouchers_gerados_oficial": 9468,
       "usuarios_unicos_oficial": 4513,
       "frequencia_uso_oficial": 2.1,
-      "frequencia_uso_planilha_original": 2.1
+      "frequencia_uso_planilha_original": 2.1,
+      "carteira_clube_oficial": 87726,
+      "penetracao_oficial_pct": 5.14,
+      "media_uso_dia_oficial": 326
     },
     "2023-10": {
       "vouchers_gerados_oficial": 7615,
       "usuarios_unicos_oficial": 4002,
       "frequencia_uso_oficial": 1.9,
-      "frequencia_uso_planilha_original": 1.9
+      "frequencia_uso_planilha_original": 1.9,
+      "carteira_clube_oficial": 87534,
+      "penetracao_oficial_pct": 4.57,
+      "media_uso_dia_oficial": 263
     },
     "2023-11": {
       "vouchers_gerados_oficial": 8918,
       "usuarios_unicos_oficial": 4829,
       "frequencia_uso_oficial": 1.85,
-      "frequencia_uso_planilha_original": 1.85
+      "frequencia_uso_planilha_original": 1.85,
+      "carteira_clube_oficial": 87319,
+      "penetracao_oficial_pct": 5.53,
+      "media_uso_dia_oficial": 308
     },
     "2023-12": {
       "vouchers_gerados_oficial": 9116,
       "usuarios_unicos_oficial": 5192,
       "frequencia_uso_oficial": 1.76,
-      "frequencia_uso_planilha_original": 1.76
+      "frequencia_uso_planilha_original": 1.76,
+      "carteira_clube_oficial": 87163,
+      "penetracao_oficial_pct": 5.96,
+      "media_uso_dia_oficial": 314
     },
     "2024-01": {
       "vouchers_gerados_oficial": 15677,
       "usuarios_unicos_oficial": 8498,
       "frequencia_uso_oficial": 1.84,
-      "frequencia_uso_planilha_original": 1.84
+      "frequencia_uso_planilha_original": 1.84,
+      "carteira_clube_oficial": 87744,
+      "penetracao_oficial_pct": 9.68,
+      "media_uso_dia_oficial": 541
     },
     "2024-02": {
       "vouchers_gerados_oficial": 10262,
       "usuarios_unicos_oficial": 6827,
       "frequencia_uso_oficial": 1.5,
-      "frequencia_uso_planilha_original": 1.5
+      "frequencia_uso_planilha_original": 1.5,
+      "carteira_clube_oficial": 87482,
+      "penetracao_oficial_pct": 7.8,
+      "media_uso_dia_oficial": 354
     },
     "2024-03": {
       "vouchers_gerados_oficial": 11086,
       "usuarios_unicos_oficial": 7082,
       "frequencia_uso_oficial": 1.57,
-      "frequencia_uso_planilha_original": 1.57
+      "frequencia_uso_planilha_original": 1.57,
+      "carteira_clube_oficial": 88409,
+      "penetracao_oficial_pct": 8.01,
+      "media_uso_dia_oficial": 382
     },
     "2024-04": {
       "vouchers_gerados_oficial": 10844,
       "usuarios_unicos_oficial": 6845,
       "frequencia_uso_oficial": 1.58,
-      "frequencia_uso_planilha_original": 1.58
+      "frequencia_uso_planilha_original": 1.58,
+      "carteira_clube_oficial": 89030,
+      "penetracao_oficial_pct": 7.69,
+      "media_uso_dia_oficial": 374
     },
     "2024-05": {
       "vouchers_gerados_oficial": 4401,
       "usuarios_unicos_oficial": 2704,
       "frequencia_uso_oficial": 1.63,
-      "frequencia_uso_planilha_original": 1.63
+      "frequencia_uso_planilha_original": 1.63,
+      "carteira_clube_oficial": 88523,
+      "penetracao_oficial_pct": 3.05,
+      "media_uso_dia_oficial": 152
     },
     "2024-06": {
       "vouchers_gerados_oficial": 8870,
       "usuarios_unicos_oficial": 5208,
       "frequencia_uso_oficial": 1.7,
-      "frequencia_uso_planilha_original": 1.7
+      "frequencia_uso_planilha_original": 1.7,
+      "carteira_clube_oficial": 88848,
+      "penetracao_oficial_pct": 5.86,
+      "media_uso_dia_oficial": 306
     },
     "2024-07": {
       "vouchers_gerados_oficial": 12830,
       "usuarios_unicos_oficial": 6980,
       "frequencia_uso_oficial": 1.84,
-      "frequencia_uso_planilha_original": 1.84
+      "frequencia_uso_planilha_original": 1.84,
+      "carteira_clube_oficial": 89116,
+      "penetracao_oficial_pct": 7.83,
+      "media_uso_dia_oficial": 442
     },
     "2024-08": {
       "vouchers_gerados_oficial": 11787,
       "usuarios_unicos_oficial": 6001,
       "frequencia_uso_oficial": 1.96,
-      "frequencia_uso_planilha_original": 1.96
+      "frequencia_uso_planilha_original": 1.96,
+      "carteira_clube_oficial": 88839,
+      "penetracao_oficial_pct": 6.75,
+      "media_uso_dia_oficial": 406
     },
     "2024-09": {
       "vouchers_gerados_oficial": 10690,
       "usuarios_unicos_oficial": 5177,
       "frequencia_uso_oficial": 2.06,
-      "frequencia_uso_planilha_original": 2.06
+      "frequencia_uso_planilha_original": 2.06,
+      "carteira_clube_oficial": 88807,
+      "penetracao_oficial_pct": 5.83,
+      "media_uso_dia_oficial": 369
     },
     "2024-10": {
       "vouchers_gerados_oficial": 10689,
       "usuarios_unicos_oficial": 5420,
       "frequencia_uso_oficial": 1.97,
-      "frequencia_uso_planilha_original": 1.97
+      "frequencia_uso_planilha_original": 1.97,
+      "carteira_clube_oficial": 88962,
+      "penetracao_oficial_pct": 6.09,
+      "media_uso_dia_oficial": 369
     },
     "2024-11": {
       "vouchers_gerados_oficial": 15102,
       "usuarios_unicos_oficial": 7692,
       "frequencia_uso_oficial": 1.96,
-      "frequencia_uso_planilha_original": 1.96
+      "frequencia_uso_planilha_original": 1.96,
+      "carteira_clube_oficial": 89840,
+      "penetracao_oficial_pct": 8.56,
+      "media_uso_dia_oficial": 521
     },
     "2024-12": {
       "vouchers_gerados_oficial": 13502,
       "usuarios_unicos_oficial": 7106,
       "frequencia_uso_oficial": 1.9,
-      "frequencia_uso_planilha_original": 1.9
+      "frequencia_uso_planilha_original": 1.9,
+      "carteira_clube_oficial": 89066,
+      "penetracao_oficial_pct": 7.98,
+      "media_uso_dia_oficial": 466
     },
     "2025-01": {
       "vouchers_gerados_oficial": 15156,
       "usuarios_unicos_oficial": 7980,
       "frequencia_uso_oficial": 1.9,
-      "frequencia_uso_planilha_original": 1.9
+      "frequencia_uso_planilha_original": 1.9,
+      "carteira_clube_oficial": 88770,
+      "penetracao_oficial_pct": 8.99,
+      "media_uso_dia_oficial": 523
     },
     "2025-02": {
       "vouchers_gerados_oficial": 11541,
       "usuarios_unicos_oficial": 6267,
       "frequencia_uso_oficial": 1.84,
-      "frequencia_uso_planilha_original": 1.84
+      "frequencia_uso_planilha_original": 1.84,
+      "carteira_clube_oficial": 88027,
+      "penetracao_oficial_pct": 7.12,
+      "media_uso_dia_oficial": 398
     },
     "2025-03": {
       "vouchers_gerados_oficial": 15364,
       "usuarios_unicos_oficial": 7857,
       "frequencia_uso_oficial": 1.96,
-      "frequencia_uso_planilha_original": 1.96
+      "frequencia_uso_planilha_original": 1.96,
+      "carteira_clube_oficial": 89540,
+      "penetracao_oficial_pct": 8.77,
+      "media_uso_dia_oficial": 530
     },
     "2025-04": {
       "vouchers_gerados_oficial": 13708,
       "usuarios_unicos_oficial": 6655,
       "frequencia_uso_oficial": 2.06,
-      "frequencia_uso_planilha_original": 2.06
+      "frequencia_uso_planilha_original": 2.06,
+      "carteira_clube_oficial": 90451,
+      "penetracao_oficial_pct": 7.36,
+      "media_uso_dia_oficial": 473
     },
     "2025-05": {
       "vouchers_gerados_oficial": 16578,
       "usuarios_unicos_oficial": 7966,
       "frequencia_uso_oficial": 2.08,
-      "frequencia_uso_planilha_original": 2.08
+      "frequencia_uso_planilha_original": 2.08,
+      "carteira_clube_oficial": 92651,
+      "penetracao_oficial_pct": 8.6,
+      "media_uso_dia_oficial": 572
     },
     "2025-06": {
       "vouchers_gerados_oficial": 14206,
       "usuarios_unicos_oficial": 6846,
       "frequencia_uso_oficial": 2.08,
-      "frequencia_uso_planilha_original": 2.08
+      "frequencia_uso_planilha_original": 2.08,
+      "carteira_clube_oficial": 91629,
+      "penetracao_oficial_pct": 7.47,
+      "media_uso_dia_oficial": 490
     },
     "2025-07": {
       "vouchers_gerados_oficial": 15122,
       "usuarios_unicos_oficial": 7590,
       "frequencia_uso_oficial": 1.99,
-      "frequencia_uso_planilha_original": 1.99
+      "frequencia_uso_planilha_original": 1.99,
+      "carteira_clube_oficial": 90882,
+      "penetracao_oficial_pct": 8.35,
+      "media_uso_dia_oficial": 521
     },
     "2025-08": {
       "vouchers_gerados_oficial": 14884,
       "usuarios_unicos_oficial": 7037,
       "frequencia_uso_oficial": 2.12,
-      "frequencia_uso_planilha_original": 2.12
+      "frequencia_uso_planilha_original": 2.12,
+      "carteira_clube_oficial": 90430,
+      "penetracao_oficial_pct": 7.78,
+      "media_uso_dia_oficial": 513
     },
     "2025-09": {
       "vouchers_gerados_oficial": 14376,
       "usuarios_unicos_oficial": 6633,
       "frequencia_uso_oficial": 2.17,
-      "frequencia_uso_planilha_original": 2.17
+      "frequencia_uso_planilha_original": 2.17,
+      "carteira_clube_oficial": 91261,
+      "penetracao_oficial_pct": 7.27,
+      "media_uso_dia_oficial": 496
     },
     "2025-10": {
       "vouchers_gerados_oficial": 13014,
       "usuarios_unicos_oficial": 6146,
       "frequencia_uso_oficial": 2.12,
-      "frequencia_uso_planilha_original": 2.12
+      "frequencia_uso_planilha_original": 2.12,
+      "carteira_clube_oficial": 89461,
+      "penetracao_oficial_pct": 6.87,
+      "media_uso_dia_oficial": 449
     },
     "2025-11": {
       "vouchers_gerados_oficial": 15905,
       "usuarios_unicos_oficial": 7375,
       "frequencia_uso_oficial": 2.16,
-      "frequencia_uso_planilha_original": 2.16
+      "frequencia_uso_planilha_original": 2.16,
+      "carteira_clube_oficial": 90010,
+      "penetracao_oficial_pct": 8.19,
+      "media_uso_dia_oficial": 548
     },
     "2025-12": {
       "vouchers_gerados_oficial": 12615,
       "usuarios_unicos_oficial": 6334,
       "frequencia_uso_oficial": 1.99,
-      "frequencia_uso_planilha_original": 1.99
+      "frequencia_uso_planilha_original": 1.99,
+      "carteira_clube_oficial": 87977,
+      "penetracao_oficial_pct": 7.2,
+      "media_uso_dia_oficial": 435
     },
     "2026-01": {
       "vouchers_gerados_oficial": 15685,
       "usuarios_unicos_oficial": 7757,
       "frequencia_uso_oficial": 2.02,
-      "frequencia_uso_planilha_original": 2.02
+      "frequencia_uso_planilha_original": 2.02,
+      "carteira_clube_oficial": 87052,
+      "penetracao_oficial_pct": 8.91,
+      "media_uso_dia_oficial": 541
     },
     "2026-02": {
       "vouchers_gerados_oficial": 11643,
       "usuarios_unicos_oficial": 5667,
       "frequencia_uso_oficial": 2.05,
-      "frequencia_uso_planilha_original": 2.05
+      "frequencia_uso_planilha_original": 2.05,
+      "carteira_clube_oficial": 85512,
+      "penetracao_oficial_pct": 6.63,
+      "media_uso_dia_oficial": 401
     },
     "2026-03": {
       "vouchers_gerados_oficial": 14240,
       "usuarios_unicos_oficial": 6902,
       "frequencia_uso_oficial": 2.06,
-      "frequencia_uso_planilha_original": 2.06
+      "frequencia_uso_planilha_original": 2.06,
+      "carteira_clube_oficial": 87105,
+      "penetracao_oficial_pct": 7.92,
+      "media_uso_dia_oficial": 491
     },
     "2026-04": {
       "vouchers_gerados_oficial": 15897,
       "usuarios_unicos_oficial": 7501,
       "frequencia_uso_oficial": 2.12,
-      "frequencia_uso_planilha_original": 2.12
+      "frequencia_uso_planilha_original": 2.12,
+      "carteira_clube_oficial": 94863,
+      "penetracao_oficial_pct": 7.91,
+      "media_uso_dia_oficial": 548
     },
     "2026-05": {
       "vouchers_gerados_oficial": 16185,
       "usuarios_unicos_oficial": 7396,
       "frequencia_uso_oficial": 2.19,
-      "frequencia_uso_planilha_original": 2.19
+      "frequencia_uso_planilha_original": 2.19,
+      "carteira_clube_oficial": 93136,
+      "penetracao_oficial_pct": 7.94,
+      "media_uso_dia_oficial": 558
     },
     "2026-06": {
       "vouchers_gerados_oficial": 12900,
       "usuarios_unicos_oficial": 6393,
       "frequencia_uso_oficial": 2.02,
-      "frequencia_uso_planilha_original": 2.02
+      "frequencia_uso_planilha_original": 2.02,
+      "carteira_clube_oficial": 93787,
+      "penetracao_oficial_pct": 6.82,
+      "media_uso_dia_oficial": 445
     },
     "2026-07": {
       "vouchers_gerados_oficial": 15072,
       "usuarios_unicos_oficial": 7388,
       "frequencia_uso_oficial": 2.04,
-      "frequencia_uso_planilha_original": 2.04
+      "frequencia_uso_planilha_original": 2.04,
+      "carteira_clube_oficial": 92312,
+      "penetracao_oficial_pct": 8.0,
+      "media_uso_dia_oficial": 520
     },
     "2026-08": {
       "vouchers_gerados_oficial": 15908,
       "usuarios_unicos_oficial": 7308,
       "frequencia_uso_oficial": 2.18,
-      "frequencia_uso_planilha_original": 2.18
+      "frequencia_uso_planilha_original": 2.18,
+      "carteira_clube_oficial": 91026,
+      "penetracao_oficial_pct": 8.03,
+      "media_uso_dia_oficial": 549
     }
   },
   "avisos_normalizacao": [
