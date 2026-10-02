@@ -185,6 +185,30 @@ select.mini-select {
   font-size: 12.5px; padding: 5px 8px; border-radius: 6px; border: 1px solid var(--border);
   background: var(--page-plane); color: var(--text-primary);
 }
+
+/* ---- Abas principais (Painel mensal / Acumulado do ano) ---- */
+.tabs-principais {
+  display: flex; gap: 4px; padding: 0 24px; background: var(--page-plane);
+  border-bottom: 1px solid var(--border); position: sticky; top: 65px; z-index: 19;
+}
+.tab-btn {
+  padding: 10px 14px; font-size: 13px; font-weight: 500; border: none; background: none;
+  color: var(--text-secondary); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px;
+}
+.tab-btn:hover { color: var(--text-primary); }
+.tab-btn.ativa { color: var(--text-primary); border-bottom-color: var(--series-1); font-weight: 600; }
+
+/* ---- Filtro de comparação (Acumulado do ano) ---- */
+.filtro-bar {
+  display: flex; flex-wrap: wrap; gap: 10px; align-items: center; background: var(--surface-1);
+  border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin: 0 0 16px; font-size: 13px;
+}
+.filtro-bar label { color: var(--text-secondary); margin-right: 2px; }
+.filtro-bar select {
+  font-size: 13px; padding: 5px 8px; border-radius: 6px; border: 1px solid var(--border);
+  background: var(--page-plane); color: var(--text-primary);
+}
+.filtro-bar .sep { color: var(--muted); margin: 0 2px; }
 </style>
 </head>
 <body>
@@ -217,18 +241,33 @@ select.mini-select {
       <button id="btn-sair">Sair</button>
     </div>
   </header>
-  <nav class="section-nav">
-    <a href="#sec-kpis">KPIs principais</a>
-    <a href="#sec-kpis-sec">KPIs secundários</a>
-    <a href="#sec-tendencia">Tendência histórica</a>
-    <a href="#sec-crescimento">O que puxou o crescimento</a>
-    <a href="#sec-comparacao">Comparação de períodos</a>
-    <a href="#sec-segmentacoes">Segmentações</a>
-    <a href="#sec-recorrencia">Recorrência &amp; ativação</a>
-  </nav>
-  <main id="main">
-    <div class="carregando" id="carregando">Carregando dados do Supabase...</div>
-  </main>
+  <div class="tabs-principais">
+    <button class="tab-btn ativa" id="tab-mensal" type="button">Painel mensal</button>
+    <button class="tab-btn" id="tab-anual" type="button">Acumulado do ano</button>
+  </div>
+
+  <div id="vista-mensal">
+    <nav class="section-nav">
+      <a href="#sec-kpis">KPIs principais</a>
+      <a href="#sec-kpis-sec">KPIs secundários</a>
+      <a href="#sec-tendencia">Tendência histórica</a>
+      <a href="#sec-crescimento">O que puxou o crescimento</a>
+      <a href="#sec-comparacao">Comparação de períodos</a>
+      <a href="#sec-segmentacoes">Segmentações</a>
+      <a href="#sec-recorrencia">Recorrência &amp; ativação</a>
+    </nav>
+    <main id="main">
+      <div class="carregando" id="carregando">Carregando dados do Supabase...</div>
+    </main>
+  </div>
+
+  <div id="vista-anual" style="display:none">
+    <div class="filtro-bar" style="margin:24px 24px 0;">
+      <label>Ano</label>
+      <select id="ano-select-acum"></select>
+    </div>
+    <main id="main-anual"></main>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -285,6 +324,23 @@ function mostrarPainel() {
   document.getElementById('tela-painel').style.display = 'block';
 }
 
+function mostrarVistaMensal() {
+  document.getElementById('vista-mensal').style.display = 'block';
+  document.getElementById('vista-anual').style.display = 'none';
+  document.getElementById('tab-mensal').classList.add('ativa');
+  document.getElementById('tab-anual').classList.remove('ativa');
+}
+function mostrarVistaAnual() {
+  document.getElementById('vista-mensal').style.display = 'none';
+  document.getElementById('vista-anual').style.display = 'block';
+  document.getElementById('tab-mensal').classList.remove('ativa');
+  document.getElementById('tab-anual').classList.add('ativa');
+  const selAno = document.getElementById('ano-select-acum');
+  if (selAno.value) renderAcumuladoAno(selAno.value);
+}
+document.getElementById('tab-mensal').addEventListener('click', mostrarVistaMensal);
+document.getElementById('tab-anual').addEventListener('click', mostrarVistaAnual);
+
 const MES_NOMES = {'01':'janeiro','02':'fevereiro','03':'março','04':'abril','05':'maio','06':'junho','07':'julho','08':'agosto','09':'setembro','10':'outubro','11':'novembro','12':'dezembro'};
 function fmtMesLabel(mesKey) { const [a,m] = mesKey.split('-'); return `${MES_NOMES[m]}/${a}`; }
 function fmtInt(n) { return (n===null||n===undefined) ? '—' : new Intl.NumberFormat('pt-BR').format(Math.round(n)); }
@@ -296,6 +352,12 @@ function somaMeses(mesRef, deslocamento) {
   const total = ano * 12 + (mes - 1) + deslocamento;
   const novoAno = Math.floor(total / 12), novoMes = total % 12;
   return `${String(novoAno).padStart(4,'0')}-${String(novoMes + 1).padStart(2,'0')}-01`;
+}
+function anoDoMes(mesRef) { return mesRef.slice(0, 4); }
+function mediaSimples(valores) {
+  const validos = valores.filter(v => v !== null && v !== undefined);
+  if (!validos.length) return null;
+  return validos.reduce((a, b) => a + b, 0) / validos.length;
 }
 
 const COLORS = ['--series-1','--series-2','--series-3','--series-4','--series-5','--series-6','--series-7','--series-8'].map(css);
@@ -535,6 +597,17 @@ async function rpcAtivacaoCoorte(mesCoorte) {
   return data;
 }
 
+async function rpcUsuariosUnicos(mesInicio, mesFim) {
+  // Usuários únicos (geradores de voucher) deduplicados num intervalo
+  // qualquer -- inclusive um ano inteiro, mesmo cobrindo meses fora da
+  // janela móvel de 6 meses. Função nova (ver 008_usuarios_unicos_periodo.sql
+  // no Blueprint) -- se ainda não foi aplicada no banco, o erro é
+  // tratado por quem chama, não aqui.
+  const { data, error } = await supabaseClient.rpc('fn_usuarios_unicos_periodo', { mes_inicio: mesInicio, mes_fim: mesFim });
+  if (error) throw error;
+  return data;
+}
+
 // =====================================================================
 // Render
 // =====================================================================
@@ -749,6 +822,197 @@ async function renderRecorrenciaAtivacao() {
 }
 
 // =====================================================================
+// Acumulado do ano -- aba nova (02/10/2026, a pedido de Stela). Usa só
+// o que já está em SERIE_KPIS (somas/médias calculadas aqui no
+// navegador, sem função nova no banco) + 2 chamadas que já existiam
+// (rpcWaterfall, carregarComposicao) + 1 função nova
+// (fn_usuarios_unicos_periodo, ver 008_usuarios_unicos_periodo.sql no
+// Blueprint) para o único número que não dava pra somar a partir do
+// resumo mensal sem contar a mesma pessoa 2x: usuários únicos no ano.
+// =====================================================================
+
+function totaisDoPeriodo(meses) {
+  const soma = (campo) => meses.reduce((acc, r) => acc + (r[campo] || 0), 0);
+  const media = (campo) => mediaSimples(meses.map(r => r[campo]));
+  return {
+    carteiraFinal: meses[meses.length - 1].carteira_ativa,
+    novos: soma('novos_assinantes'),
+    cancelados: soma('canceladas'),
+    saldo: soma('novos_assinantes') - soma('canceladas'),
+    vouchersOficial: soma('vouchers_gerados_oficial'),
+    vouchersLiquidos: soma('vouchers_liquidos'),
+    freqMedia: media('frequencia_uso_oficial'),
+    penetMedia: media('penetracao_pct'),
+  };
+}
+
+async function renderAcumuladoAno(anoSelecionado) {
+  destroyCharts();
+  const mainAnual = document.getElementById('main-anual');
+  mainAnual.innerHTML = '';
+
+  const mesesDoAno = SERIE_KPIS.filter(r => anoDoMes(r.mes_referencia) === anoSelecionado);
+  if (!mesesDoAno.length) {
+    mainAnual.appendChild(el('div', 'callout aviso', `<h3>Sem dados para ${anoSelecionado}</h3><p style="margin:0">Nenhum mês carregado em v_kpis_mensal para esse ano.</p>`));
+    return;
+  }
+  const primeiroMes = mesesDoAno[0].mes_referencia;
+  const ultimoMes = mesesDoAno[mesesDoAno.length - 1].mes_referencia;
+  const nMeses = mesesDoAno.length;
+  const parcial = nMeses < 12;
+
+  // Ano anterior, mesmo número de meses -- pra comparação ficar justa
+  // quando o ano corrente ainda está em andamento (ex: 2026 com só 8
+  // meses não deveria ser comparado contra os 12 meses de 2025 inteiro).
+  const idxPrimeiroMes = SERIE_KPIS.findIndex(r => r.mes_referencia === primeiroMes);
+  const idxAnoAnteriorIni = idxPrimeiroMes - 12;
+  const mesesAnoAnterior = idxAnoAnteriorIni >= 0
+    ? SERIE_KPIS.slice(idxAnoAnteriorIni, idxAnoAnteriorIni + nMeses)
+    : [];
+
+  const atual = totaisDoPeriodo(mesesDoAno);
+  const anterior = mesesAnoAnterior.length === nMeses ? totaisDoPeriodo(mesesAnoAnterior) : null;
+
+  // ---- 1. Hero: KPIs do ano ----
+  sectionTitle(mainAnual, 'sec-acum-hero', '1', `Acumulado de ${anoSelecionado}`,
+    parcial
+      ? `Ano em andamento -- ${fmtMesLabel(primeiroMes)} a ${fmtMesLabel(ultimoMes)} (${nMeses} ${nMeses === 1 ? 'mês' : 'meses'}). Comparação vs. ano anterior usa o mesmo número de meses, pra ficar justa.`
+      : `Ano fechado -- ${fmtMesLabel(primeiroMes)} a ${fmtMesLabel(ultimoMes)}.`);
+
+  const heroGrid = el('div', 'kpi-grid hero');
+  heroGrid.appendChild(kpiCard('Novos assinantes no ano', fmtInt(atual.novos), null, { hero: true, rank: 'Prioridade 1', deltaHtml: anterior ? deltaHtml(atual.novos, anterior.novos) : '' }));
+  heroGrid.appendChild(kpiCard('Saldo líquido no ano', fmtInt(atual.saldo), 'Novos − cancelamentos', { hero: true, deltaHtml: anterior ? deltaHtml(atual.saldo, anterior.saldo) : '' }));
+  heroGrid.appendChild(kpiCard('Carteira ativa (fim do período)', fmtInt(atual.carteiraFinal), fmtMesLabel(ultimoMes), { hero: true, deltaHtml: anterior ? deltaHtml(atual.carteiraFinal, anterior.carteiraFinal) : '' }));
+  mainAnual.querySelector('#sec-acum-hero').appendChild(heroGrid);
+
+  const kpiGrid2 = el('div', 'kpi-grid');
+  kpiGrid2.appendChild(kpiCard('Cancelamentos no ano', fmtInt(atual.cancelados), null, { deltaHtml: anterior ? deltaHtml(atual.cancelados, anterior.cancelados, false) : '' }));
+  kpiGrid2.appendChild(kpiCard('Vouchers gerados no ano (oficial)', fmtInt(atual.vouchersOficial), 'Fonte: Alloyal', { deltaHtml: anterior ? deltaHtml(atual.vouchersOficial, anterior.vouchersOficial) : '' }));
+  kpiGrid2.appendChild(kpiCard('Vouchers líquidos no ano (interno)', fmtInt(atual.vouchersLiquidos), null, { deltaHtml: anterior ? deltaHtml(atual.vouchersLiquidos, anterior.vouchersLiquidos) : '' }));
+  kpiGrid2.appendChild(kpiCard('Frequência de uso média (oficial)', fmtDec(atual.freqMedia), 'Média simples dos meses do período'));
+  kpiGrid2.appendChild(kpiCard('Penetração média da base', fmtPct(atual.penetMedia), 'Média simples dos meses do período'));
+  const cardUnicos = kpiCard('Usuários únicos geradores no ano', '—', 'Calculando...', { rank: 'Novo' });
+  kpiGrid2.appendChild(cardUnicos);
+  mainAnual.querySelector('#sec-acum-hero').appendChild(kpiGrid2);
+
+  rpcUsuariosUnicos(primeiroMes, ultimoMes).then(valor => {
+    cardUnicos.querySelector('.value').textContent = fmtInt(valor);
+    cardUnicos.querySelector('.hint').textContent = 'Deduplicado -- cada pessoa conta 1x no período, mesmo gerando voucher em vários meses';
+  }).catch(() => {
+    cardUnicos.querySelector('.value').textContent = '—';
+    cardUnicos.querySelector('.hint').textContent = 'Ainda não disponível neste banco (ver 008_usuarios_unicos_periodo.sql no Blueprint)';
+  });
+
+  // ---- 2. O que puxou o crescimento no ano (waterfall) ----
+  sectionTitle(mainAnual, 'sec-acum-crescimento', '2', 'O que puxou o crescimento no ano', `${fmtMesLabel(primeiroMes)} a ${fmtMesLabel(ultimoMes)}.`);
+  const gridCresc = el('div', 'chart-grid');
+  mainAnual.querySelector('#sec-acum-crescimento').appendChild(gridCresc);
+  const waterfallDados = await rpcWaterfall(primeiroMes, ultimoMes);
+  {
+    const {card, canvas} = makeChartCard('Novos assinantes, cancelamentos e saldo líquido', true);
+    gridCresc.appendChild(card);
+    waterfallChart(canvas, waterfallDados.map(r => fmtMesLabel(r.mes_referencia)),
+      waterfallDados.map(r => r.novos_assinantes), waterfallDados.map(r => r.canceladas), waterfallDados.map(r => r.saldo_liquido));
+  }
+
+  // ---- 3. Composição da carteira no fim do período ----
+  sectionTitle(mainAnual, 'sec-acum-composicao', '3', 'Composição da carteira no fim do período', fmtMesLabel(ultimoMes));
+  const secComp = mainAnual.querySelector('#sec-acum-composicao');
+  const composicaoFim = await carregarComposicao(ultimoMes);
+  const gridComp = el('div', 'chart-grid');
+  secComp.appendChild(gridComp);
+  const dimsFim = [...new Set(composicaoFim.map(r => r.dimensao))];
+  for (const dim of dimsFim) {
+    const linhas = composicaoFim.filter(r => r.dimensao === dim);
+    const categorias = ordenarCategorias(dim, linhas.map(r => r.categoria));
+    const valores = categorias.map(c => linhas.find(r => r.categoria === c)?.qtd || 0);
+    gridComp.appendChild(distTableCard(tituloDimensao(dim), null, categorias, valores));
+  }
+
+  // ---- 4. Comparar dois períodos quaisquer (mês/ano x mês/ano livre) ----
+  sectionTitle(mainAnual, 'sec-acum-comparar', '4', 'Comparar dois períodos quaisquer', 'Escolha mês e ano de cada lado -- dá pra comparar meses do mesmo ano, de anos diferentes, ou qualquer combinação.');
+  renderFiltroComparacaoLivre(mainAnual.querySelector('#sec-acum-comparar'));
+
+  // ---- Nota de escopo ----
+  mainAnual.appendChild(el('div', 'footnotes', `<b>Nota sobre esta aba</b>
+    <ul>
+      <li>Os totais e médias do ano são calculados aqui a partir dos meses de resumo (v_kpis_mensal) -- funcionam pra qualquer ano desde jul/2023.</li>
+      <li>"Usuários únicos geradores no ano" é deduplicado de verdade (cada pessoa conta 1x, mesmo gerando voucher em vários meses) -- precisa de uma função nova no banco (ver Blueprint); se aparecer "—", ela ainda não foi aplicada/backfilled neste projeto Supabase.</li>
+      <li>Esta versão não inclui ainda o mapa de calor mês a mês nem o scorecard de evolução multi-ano do painel consolidado antigo -- avise se quiser que eu adicione.</li>
+    </ul>`));
+}
+
+let filtroLivre = null; // { anoA, mesA, anoB, mesB } -- mantém a última escolha ao trocar de ano/aba
+
+function renderFiltroComparacaoLivre(container) {
+  const bar = el('div', 'filtro-bar');
+  const anos = [...new Set(MES_KEYS.map(anoDoMes))].sort();
+  const mesesDisponiveisPorAno = (ano) => MES_KEYS.filter(k => anoDoMes(k) === ano).map(k => k.slice(5, 7)).sort();
+
+  if (!filtroLivre) {
+    const b = MES_KEYS[MES_KEYS.length - 1];
+    const a = MES_KEYS[Math.max(0, MES_KEYS.length - 13)];
+    filtroLivre = { anoA: anoDoMes(a), mesA: a.slice(5, 7), anoB: anoDoMes(b), mesB: b.slice(5, 7) };
+  }
+
+  bar.innerHTML = `
+    <label>Comparar</label>
+    <select id="cl-mes-a"></select>
+    <select id="cl-ano-a"></select>
+    <span class="sep">vs.</span>
+    <select id="cl-mes-b"></select>
+    <select id="cl-ano-b"></select>
+  `;
+  container.appendChild(bar);
+
+  const selMesA = bar.querySelector('#cl-mes-a'), selAnoA = bar.querySelector('#cl-ano-a');
+  const selMesB = bar.querySelector('#cl-mes-b'), selAnoB = bar.querySelector('#cl-ano-b');
+  const anoOpts = anos.map(a => `<option value="${a}">${a}</option>`).join('');
+  selAnoA.innerHTML = anoOpts; selAnoB.innerHTML = anoOpts;
+  selAnoA.value = filtroLivre.anoA; selAnoB.value = filtroLivre.anoB;
+
+  function popularMeses(sel, ano, mesPreferido) {
+    const meses = mesesDisponiveisPorAno(ano);
+    sel.innerHTML = meses.map(m => `<option value="${m}">${MES_NOMES[m]}</option>`).join('');
+    sel.value = meses.includes(mesPreferido) ? mesPreferido : meses[meses.length - 1];
+  }
+  popularMeses(selMesA, filtroLivre.anoA, filtroLivre.mesA);
+  popularMeses(selMesB, filtroLivre.anoB, filtroLivre.mesB);
+
+  const resultadoDiv = el('div', 'chart-grid');
+  container.appendChild(resultadoDiv);
+
+  async function atualizar() {
+    filtroLivre = { anoA: selAnoA.value, mesA: selMesA.value, anoB: selAnoB.value, mesB: selMesB.value };
+    const mesAKey = `${filtroLivre.anoA}-${filtroLivre.mesA}-01`;
+    const mesBKey = `${filtroLivre.anoB}-${filtroLivre.mesB}-01`;
+    resultadoDiv.innerHTML = '<div class="carregando">Calculando...</div>';
+    try {
+      const dados = await rpcComparacao(mesAKey, mesBKey);
+      resultadoDiv.innerHTML = '';
+      resultadoDiv.appendChild(tabelaComparacao(`${fmtMesLabel(mesBKey)} vs. ${fmtMesLabel(mesAKey)}`, dados));
+      const [inicio, fim] = mesAKey <= mesBKey ? [mesAKey, mesBKey] : [mesBKey, mesAKey];
+      try {
+        const unicos = await rpcUsuariosUnicos(inicio, fim);
+        resultadoDiv.appendChild(kpiCard('Usuários únicos no intervalo (deduplicado)', fmtInt(unicos), `${fmtMesLabel(inicio)} a ${fmtMesLabel(fim)}, cada pessoa 1x`));
+      } catch (e) {
+        // função nova (ver 008_usuarios_unicos_periodo.sql) pode ainda não existir -- não quebra o resto da comparação
+      }
+    } catch (e) {
+      resultadoDiv.innerHTML = `<div class="callout aviso"><h3>Não foi possível comparar</h3><p style="margin:0">${e.message || e}</p></div>`;
+    }
+  }
+
+  [selMesA, selAnoA, selMesB, selAnoB].forEach(sel => sel.addEventListener('change', () => {
+    if (sel === selAnoA) popularMeses(selMesA, selAnoA.value, selMesA.value);
+    if (sel === selAnoB) popularMeses(selMesB, selAnoB.value, selMesB.value);
+    atualizar();
+  }));
+
+  atualizar();
+}
+
+// =====================================================================
 // Inicialização do painel (chamado depois de confirmar a sessão, seja
 // por login agora ou por sessão já existente ao abrir a página).
 // Idempotente: pode ser chamado só uma vez com segurança.
@@ -776,6 +1040,12 @@ async function iniciarPainel() {
   MES_KEYS.forEach(k => { const o = document.createElement('option'); o.value = k; o.textContent = fmtMesLabel(k); select.appendChild(o); });
   select.value = MES_KEYS[MES_KEYS.length - 1];
   select.addEventListener('change', () => render(select.value));
+
+  const anosDisponiveis = [...new Set(MES_KEYS.map(anoDoMes))].sort();
+  const selAno = document.getElementById('ano-select-acum');
+  anosDisponiveis.forEach(a => { const o = document.createElement('option'); o.value = a; o.textContent = a; selAno.appendChild(o); });
+  selAno.value = anosDisponiveis[anosDisponiveis.length - 1];
+  selAno.addEventListener('change', () => renderAcumuladoAno(selAno.value));
 
   await render(select.value);
 }
