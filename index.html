@@ -329,6 +329,13 @@ function mostrarVistaMensal() {
   document.getElementById('vista-anual').style.display = 'none';
   document.getElementById('tab-mensal').classList.add('ativa');
   document.getElementById('tab-anual').classList.remove('ativa');
+  // Reconstrói os gráficos do painel mensal -- necessário porque a aba
+  // "Acumulado do ano" usa o mesmo array global de gráficos (`charts`)
+  // e os destrói (destroyCharts()) toda vez que renderiza; sem isto, ao
+  // voltar pra esta aba depois de ter visitado a outra, os cards de
+  // gráfico ficavam em branco (canvas órfão, sem instância do Chart.js).
+  const select = document.getElementById('mes-select');
+  if (select.value) render(select.value);
 }
 function mostrarVistaAnual() {
   document.getElementById('vista-mensal').style.display = 'none';
