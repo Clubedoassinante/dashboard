@@ -334,6 +334,11 @@ def calcula_resumo(registros_carteira, registros_vouchers, mes_referencia,
     vouchers_liquidos = len(liquidos)
     geradores_cpf = {v["cpf_hash"] for v in liquidos}
     usuarios_unicos_geradores = len(geradores_cpf)
+    # ^ mesmo set é reaproveitado por quem chama calcula_resumo() para
+    # alimentar resumo_cpfs_geradores_mensal (ver grava_cpfs_geradores) --
+    # permite contar usuários únicos deduplicados em qualquer período,
+    # inclusive um ano inteiro, sem depender da janela móvel de detalhe
+    # cru (ver 008_usuarios_unicos_periodo.sql e Blueprint).
     penetracao_pct = (
         round(usuarios_unicos_geradores / carteira_ativa * 100, 2) if carteira_ativa else None
     )
@@ -373,7 +378,7 @@ def calcula_resumo(registros_carteira, registros_vouchers, mes_referencia,
                 "geradores": contagem_geradores.get(categoria, 0),
             })
 
-    return kpis, composicao_rows, quem_gerou_rows
+    return kpis, composicao_rows, quem_gerou_rows, geradores_cpf
 
 
 def grava_resumo(supabase, mes_referencia, kpis, composicao_rows, quem_gerou_rows):
@@ -386,6 +391,21 @@ def grava_resumo(supabase, mes_referencia, kpis, composicao_rows, quem_gerou_row
         supabase.table("resumo_quem_gerou_mensal").insert(quem_gerou_rows).execute()
     print(f"  resumo: kpis + {len(composicao_rows)} linhas de composição + "
           f"{len(quem_gerou_rows)} linhas de quem-gerou")
+
+
+def grava_cpfs_geradores(supabase, mes_referencia, geradores_cpf):
+    """Grava o set de cpf_hash de quem gerou voucher líquido no mês, na
+    tabela leve que NÃO entra na janela móvel de detalhe cru (fica pra
+    sempre, ver 008_usuarios_unicos_periodo.sql) -- é o que permite
+    contar usuários únicos deduplicados num ano inteiro depois, sem
+    nunca expor cpf_hash ao front-end (só o COUNT(DISTINCT), via
+    fn_usuarios_unicos_periodo)."""
+    supabase.table("resumo_cpfs_geradores_mensal").delete().eq("mes_referencia", mes_referencia).execute()
+    if geradores_cpf:
+        linhas = [{"mes_referencia": mes_referencia, "cpf_hash": h} for h in geradores_cpf]
+        grava_em_lotes(supabase, "resumo_cpfs_geradores_mensal", linhas)
+    else:
+        print("  resumo_cpfs_geradores_mensal: 0 linhas (nenhum gerador líquido no mês)")
 
 
 def main():
@@ -442,11 +462,12 @@ def main():
     # igual ao pipeline antigo -- rodar de novo o mesmo mes so troca os dados,
     # nunca duplica)
     print("Calculando e gravando o resumo agregado (alimenta o dashboard)...")
-    kpis, composicao_rows, quem_gerou_rows = calcula_resumo(
+    kpis, composicao_rows, quem_gerou_rows, geradores_cpf = calcula_resumo(
         registros_carteira, registros_vouchers, mes_referencia,
         args.oficial_vouchers, args.oficial_usuarios, args.oficial_frequencia,
     )
     grava_resumo(supabase, mes_referencia, kpis, composicao_rows, quem_gerou_rows)
+    grava_cpfs_geradores(supabase, mes_referencia, geradores_cpf)
 
     print("Limpando dados antigos deste mês (se houver, para reprocessamento seguro)...")
     apaga_mes_em_lotes(supabase, "carteira_mensal", mes_referencia)

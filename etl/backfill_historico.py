@@ -26,7 +26,7 @@ import sys
 sys.path.insert(0, os.path.dirname(__file__))
 from carga_mensal import (
     baixar_do_storage, carrega_carteira, carrega_vouchers, grava_em_lotes,
-    apaga_mes_em_lotes, calcula_resumo, grava_resumo,
+    apaga_mes_em_lotes, calcula_resumo, grava_resumo, grava_cpfs_geradores,
     JANELA_MESES_DETALHE, soma_meses, mantem_janela_detalhe,
 )
 from supabase import create_client
@@ -129,13 +129,14 @@ def main():
                 )
 
             of = oficial.get(mes_referencia[:7])
-            kpis, composicao_rows, quem_gerou_rows = calcula_resumo(
+            kpis, composicao_rows, quem_gerou_rows, geradores_cpf = calcula_resumo(
                 registros_carteira, registros_vouchers, mes_referencia,
                 of["vouchers_gerados_oficial"] if of else None,
                 of["usuarios_unicos_oficial"] if of else None,
                 of["frequencia_uso_oficial"] if of else None,
             )
             grava_resumo(supabase, mes_referencia, kpis, composicao_rows, quem_gerou_rows)
+            grava_cpfs_geradores(supabase, mes_referencia, geradores_cpf)
 
             if mes_referencia >= CUTOFF_DETALHE:
                 apaga_mes_em_lotes(supabase, "carteira_mensal", mes_referencia)
