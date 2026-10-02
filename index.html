@@ -151,15 +151,20 @@ section.block { margin-bottom: 8px; scroll-margin-top: 110px; }
 .kpi-card .delta.flat { color: var(--muted); }
 
 .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px; }
-.chart-grid.trend { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.chart-grid.trend { grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); }
 .chart-card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
 .chart-card.wide { grid-column: 1 / -1; }
 .chart-card h3 { font-size: 13.5px; margin: 0 0 12px; font-weight: 600; }
 .chart-card .chart-wrap { position: relative; height: 260px; }
 .chart-card.wide .chart-wrap { height: 320px; }
-.chart-card.trend .chart-wrap { height: 160px; }
+.chart-card.trend .chart-wrap { height: 210px; }
 .chart-card.trend h3 { margin-bottom: 2px; }
 .chart-card .chart-sub { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+.toggle-view-btn {
+  font-size: 12px; padding: 6px 12px; border-radius: 7px; border: 1px solid var(--border);
+  background: var(--surface-1); color: var(--text-secondary); cursor: pointer; margin: -4px 0 12px;
+}
+.toggle-view-btn:hover { color: var(--text-primary); border-color: var(--text-secondary); }
 
 .callout {
   background: var(--surface-1); border: 1px solid var(--border); border-left: 4px solid var(--warning);
@@ -369,6 +374,16 @@ function mediaSimples(valores) {
   return validos.reduce((a, b) => a + b, 0) / validos.length;
 }
 
+// Média móvel de N meses -- usada pra suavizar a linha de tendência (ver
+// lineTrendChart): os primeiros N-1 pontos usam a média do que já existe
+// até ali, em vez de ficar vazio, pra não cortar o início da série.
+function mediaMovel(valores, janela) {
+  return valores.map((_, i) => {
+    const inicio = Math.max(0, i - janela + 1);
+    return mediaSimples(valores.slice(inicio, i + 1));
+  });
+}
+
 const COLORS = ['--series-1','--series-2','--series-3','--series-4','--series-5','--series-6','--series-7','--series-8'].map(css);
 
 let charts = [];
@@ -460,17 +475,34 @@ function compareTableCard(title, sub, labels, carteiraVals, geradorVals, wide=tr
 }
 
 function lineTrendChart(canvas, labels, data, colorVar, opts={}) {
+  // Emphasis: a série mensal crua (muitas vezes "serrilhada" mês a mês)
+  // vira contexto cinza fino ao fundo, e quem carrega a cor e a espessura
+  // é a média móvel de 3 meses -- é ela que mostra a tendência de forma
+  // legível. Pedido da Stela (02/10/2026): a linha mensal crua sozinha
+  // dificultava ver a tendência real.
   const color = css(colorVar);
+  const cinza = css('--muted');
+  const fmt = opts.fmt || fmtInt;
+  const mm3 = mediaMovel(data, 3);
   const c = new Chart(canvas, {
     type: 'line',
-    data: { labels, datasets: [{
-      data, borderColor: color, backgroundColor: color + '22',
-      fill: true, tension: 0.25, pointRadius: labels.length > 18 ? 0 : 2.5,
-      pointBackgroundColor: color, borderWidth: 2,
-    }]},
+    data: { labels, datasets: [
+      {
+        label: 'Mensal', data, borderColor: cinza, backgroundColor: 'transparent',
+        fill: false, tension: 0.2, pointRadius: labels.length > 18 ? 0 : 2,
+        pointBackgroundColor: cinza, borderWidth: 1, borderDash: [3, 3], order: 2,
+      },
+      {
+        label: 'Média móvel (3 meses)', data: mm3, borderColor: color, backgroundColor: color + '22',
+        fill: true, tension: 0.3, pointRadius: 0, borderWidth: 2.5, order: 1,
+      },
+    ]},
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => ' ' + (opts.fmt ? opts.fmt(ctx.parsed.y) : fmtInt(ctx.parsed.y)) } } },
+      plugins: {
+        legend: { position: 'bottom', labels: { color: css('--text-secondary'), font: {size: 10.5}, boxWidth: 10, padding: 8 } },
+        tooltip: { callbacks: { label: (ctx) => ` ${ctx.dataset.label}: ${fmt(ctx.parsed.y)}` } },
+      },
       scales: {
         x: { grid: { display: false }, ticks: { color: css('--muted'), font: {size: 9.5}, maxRotation: 0, autoSkip: true, maxTicksLimit: 8 } },
         y: { grid: { color: css('--grid') }, ticks: { color: css('--muted'), font: {size: 10} } }
@@ -639,43 +671,72 @@ async function render(mesKey) {
   kpiHero.appendChild(kpiCard('Penetração da base ativa', fmtPct(m.penetracao_pct), 'Geradores de voucher ÷ carteira ativa', { hero: true, rank: 'Prioridade 1', deltaHtml: anterior ? deltaHtml(m.penetracao_pct, anterior.penetracao_pct) : '' }));
   kpiHero.appendChild(kpiCard('Vouchers gerados (oficial)', fmtInt(m.vouchers_gerados_oficial), 'Fonte: Alloyal', { hero: true, rank: 'Prioridade 2', deltaHtml: anterior ? deltaHtml(m.vouchers_gerados_oficial, anterior.vouchers_gerados_oficial) : '' }));
   kpiHero.appendChild(kpiCard('Frequência de uso (oficial)', fmtDec(m.frequencia_uso_oficial), 'Vouchers por usuário gerador — Fonte: Alloyal', { hero: true, rank: 'Prioridade 3', deltaHtml: anterior ? deltaHtml(m.frequencia_uso_oficial, anterior.frequencia_uso_oficial) : '' }));
+  kpiHero.appendChild(kpiCard('Média de uso por dia (oficial)', fmtInt(m.media_uso_dia_oficial), 'Benefícios usados por dia, só na plataforma — Fonte: Alloyal', { hero: true, rank: 'Novo', deltaHtml: anterior ? deltaHtml(m.media_uso_dia_oficial, anterior.media_uso_dia_oficial) : '' }));
   main.querySelector('#sec-kpis').appendChild(kpiHero);
 
   // ================= KPIs secundários =================
   sectionTitle(main, 'sec-kpis-sec', '2', 'KPIs secundários', 'Carteira e cruzamento detalhado (base interna).');
   const kpiGrid = el('div', 'kpi-grid');
   kpiGrid.appendChild(kpiCard('Carteira ativa', fmtInt(m.carteira_ativa), null, { deltaHtml: anterior ? deltaHtml(m.carteira_ativa, anterior.carteira_ativa) : '' }));
+  kpiGrid.appendChild(kpiCard('Carteira Clube (oficial)', fmtInt(m.carteira_clube_oficial), 'Base orgânica — Fonte: Alloyal (pode diferir da carteira ativa interna)', { deltaHtml: anterior ? deltaHtml(m.carteira_clube_oficial, anterior.carteira_clube_oficial) : '' }));
   kpiGrid.appendChild(kpiCard('Novos assinantes no mês', fmtInt(m.novos_assinantes), null, { deltaHtml: anterior ? deltaHtml(m.novos_assinantes, anterior.novos_assinantes) : '' }));
   kpiGrid.appendChild(kpiCard('Cancelamentos no mês', fmtInt(m.canceladas), null, { deltaHtml: anterior ? deltaHtml(m.canceladas, anterior.canceladas, false) : '' }));
   kpiGrid.appendChild(kpiCard('Saldo líquido', fmtInt(m.novos_assinantes - m.canceladas), 'Novos − cancelamentos'));
   kpiGrid.appendChild(kpiCard('Usuários únicos geradores', fmtInt(m.usuarios_unicos_geradores), 'Cruzamento interno (pode diferir do oficial)', { deltaHtml: anterior ? deltaHtml(m.usuarios_unicos_geradores, anterior.usuarios_unicos_geradores) : '' }));
   kpiGrid.appendChild(kpiCard('Vouchers líquidos (interno)', fmtInt(m.vouchers_liquidos), 'Já exclui farmácia e conta administrativa (ADMIN C)', { deltaHtml: anterior ? deltaHtml(m.vouchers_liquidos, anterior.vouchers_liquidos) : '' }));
+  kpiGrid.appendChild(kpiCard('Penetração (oficial)', fmtPct(m.penetracao_oficial_pct), 'Usuários únicos oficiais ÷ Carteira Clube oficial — Fonte: Alloyal', { deltaHtml: anterior ? deltaHtml(m.penetracao_oficial_pct, anterior.penetracao_oficial_pct) : '' }));
   kpiGrid.appendChild(kpiCard('Plano Família ativo', fmtPct(m.plano_familia_ativo_pct), '% da carteira ativa com Plano Família'));
   main.querySelector('#sec-kpis-sec').appendChild(kpiGrid);
 
   // ================= Tendência histórica =================
-  sectionTitle(main, 'sec-tendencia', '3', 'Tendência histórica', `Série completa desde ${fmtMesLabel(SERIE_KPIS[0].mes_referencia)}.`);
+  sectionTitle(main, 'sec-tendencia', '3', 'Tendência histórica',
+    `Série completa desde ${fmtMesLabel(SERIE_KPIS[0].mes_referencia)}. A linha mais forte é a média móvel de 3 meses (a tendência); a linha pontilhada cinza é o valor de cada mês, só como referência de fundo.`);
+  const secTendencia = main.querySelector('#sec-tendencia');
+  const ultimoMesTend = SERIE_KPIS[SERIE_KPIS.length - 1];
+
+  const toggleTendencia = el('button', 'toggle-view-btn', 'Ver como tabela');
+  toggleTendencia.type = 'button';
+  secTendencia.appendChild(toggleTendencia);
+
   const gridTrend = el('div', 'chart-grid trend');
-  main.querySelector('#sec-tendencia').appendChild(gridTrend);
+  secTendencia.appendChild(gridTrend);
   const labelsHist = SERIE_KPIS.map(r => fmtMesLabel(r.mes_referencia));
   {
-    const {card, canvas} = makeChartCard('Penetração da base ativa (%)');
+    const {card, canvas} = makeChartCard('Penetração da base ativa (%)', false, `Último mês (${fmtMesLabel(ultimoMesTend.mes_referencia)}): ${fmtPct(ultimoMesTend.penetracao_pct)}`);
     card.className += ' trend';
     gridTrend.appendChild(card);
     lineTrendChart(canvas, labelsHist, SERIE_KPIS.map(r => r.penetracao_pct), '--series-1', { fmt: fmtPct });
   }
   {
-    const {card, canvas} = makeChartCard('Vouchers gerados (oficial)');
+    const {card, canvas} = makeChartCard('Vouchers gerados (oficial)', false, `Último mês (${fmtMesLabel(ultimoMesTend.mes_referencia)}): ${fmtInt(ultimoMesTend.vouchers_gerados_oficial)}`);
     card.className += ' trend';
     gridTrend.appendChild(card);
     lineTrendChart(canvas, labelsHist, SERIE_KPIS.map(r => r.vouchers_gerados_oficial), '--series-2');
   }
   {
-    const {card, canvas} = makeChartCard('Carteira ativa');
+    const {card, canvas} = makeChartCard('Carteira ativa', false, `Último mês (${fmtMesLabel(ultimoMesTend.mes_referencia)}): ${fmtInt(ultimoMesTend.carteira_ativa)}`);
     card.className += ' trend';
     gridTrend.appendChild(card);
     lineTrendChart(canvas, labelsHist, SERIE_KPIS.map(r => r.carteira_ativa), '--series-3');
   }
+
+  // Tabela alternativa (mesmos 3 números, mês a mês, em linhas) -- pedido
+  // da Stela (02/10/2026): a linha mensal crua sozinha dificultava ver a
+  // tendência; além de suavizar o gráfico (média móvel acima), toda essa
+  // seção também pode ser lida como tabela, escondida por padrão.
+  const tabelaTendCard = el('div', 'chart-card table-card wide');
+  tabelaTendCard.style.display = 'none';
+  tabelaTendCard.appendChild(el('h3', null, 'Tendência histórica — tabela'));
+  const linhasTendTabela = SERIE_KPIS.map(r => `<tr><td>${fmtMesLabel(r.mes_referencia)}</td><td class="num">${fmtPct(r.penetracao_pct)}</td><td class="num">${fmtInt(r.vouchers_gerados_oficial)}</td><td class="num">${fmtInt(r.carteira_ativa)}</td></tr>`).join('');
+  tabelaTendCard.appendChild(el('div', 'table-wrap', `<table class="data-table"><thead><tr><th>Mês</th><th class="num">Penetração da base ativa</th><th class="num">Vouchers gerados (oficial)</th><th class="num">Carteira ativa</th></tr></thead><tbody>${linhasTendTabela}</tbody></table>`));
+  secTendencia.appendChild(tabelaTendCard);
+
+  toggleTendencia.addEventListener('click', () => {
+    const vaiMostrarTabela = gridTrend.style.display !== 'none';
+    gridTrend.style.display = vaiMostrarTabela ? 'none' : '';
+    tabelaTendCard.style.display = vaiMostrarTabela ? '' : 'none';
+    toggleTendencia.textContent = vaiMostrarTabela ? 'Ver como gráfico' : 'Ver como tabela';
+  });
 
   // ================= O que puxou o crescimento (waterfall) =================
   sectionTitle(main, 'sec-crescimento', '4', 'O que puxou o crescimento', 'Novos assinantes vs. cancelamentos — últimos 12 meses até o mês selecionado.');
@@ -852,6 +913,12 @@ function totaisDoPeriodo(meses) {
     vouchersLiquidos: soma('vouchers_liquidos'),
     freqMedia: media('frequencia_uso_oficial'),
     penetMedia: media('penetracao_pct'),
+    // 3 métricas oficiais novas (ver Blueprint, decisão de 02/10/2026) --
+    // carteira oficial usa o fim do período (igual à carteira interna);
+    // penetração e uso diário oficiais usam média simples dos meses.
+    carteiraOficialFinal: meses[meses.length - 1].carteira_clube_oficial,
+    penetOficialMedia: media('penetracao_oficial_pct'),
+    mediaUsoDiaMedia: media('media_uso_dia_oficial'),
   };
 }
 
@@ -928,6 +995,7 @@ async function renderAcumuladoAno(anoSelecionado) {
   heroGrid.appendChild(kpiCard('Novos assinantes no ano', fmtInt(atual.novos), null, { hero: true, rank: 'Prioridade 1', deltaHtml: anterior ? deltaHtml(atual.novos, anterior.novos) : '' }));
   heroGrid.appendChild(kpiCard('Saldo líquido no ano', fmtInt(atual.saldo), 'Novos − cancelamentos', { hero: true, deltaHtml: anterior ? deltaHtml(atual.saldo, anterior.saldo) : '' }));
   heroGrid.appendChild(kpiCard('Carteira ativa (fim do período)', fmtInt(atual.carteiraFinal), fmtMesLabel(ultimoMes), { hero: true, deltaHtml: anterior ? deltaHtml(atual.carteiraFinal, anterior.carteiraFinal) : '' }));
+  heroGrid.appendChild(kpiCard('Média de uso por dia (oficial)', fmtInt(atual.mediaUsoDiaMedia), 'Média simples dos meses do período — Fonte: Alloyal', { hero: true, rank: 'Novo', deltaHtml: anterior ? deltaHtml(atual.mediaUsoDiaMedia, anterior.mediaUsoDiaMedia) : '' }));
   mainAnual.querySelector('#sec-acum-hero').appendChild(heroGrid);
 
   const kpiGrid2 = el('div', 'kpi-grid');
@@ -936,6 +1004,8 @@ async function renderAcumuladoAno(anoSelecionado) {
   kpiGrid2.appendChild(kpiCard('Vouchers líquidos no ano (interno)', fmtInt(atual.vouchersLiquidos), null, { deltaHtml: anterior ? deltaHtml(atual.vouchersLiquidos, anterior.vouchersLiquidos) : '' }));
   kpiGrid2.appendChild(kpiCard('Frequência de uso média (oficial)', fmtDec(atual.freqMedia), 'Média simples dos meses do período'));
   kpiGrid2.appendChild(kpiCard('Penetração média da base', fmtPct(atual.penetMedia), 'Média simples dos meses do período'));
+  kpiGrid2.appendChild(kpiCard('Carteira Clube (oficial, fim do período)', fmtInt(atual.carteiraOficialFinal), `${fmtMesLabel(ultimoMes)} — Fonte: Alloyal`, { deltaHtml: anterior ? deltaHtml(atual.carteiraOficialFinal, anterior.carteiraOficialFinal) : '' }));
+  kpiGrid2.appendChild(kpiCard('Penetração média (oficial)', fmtPct(atual.penetOficialMedia), 'Média simples dos meses do período — Fonte: Alloyal'));
   const cardUnicos = kpiCard('Usuários únicos geradores no ano', '—', 'Calculando...', { rank: 'Novo' });
   kpiGrid2.appendChild(cardUnicos);
   mainAnual.querySelector('#sec-acum-hero').appendChild(kpiGrid2);
