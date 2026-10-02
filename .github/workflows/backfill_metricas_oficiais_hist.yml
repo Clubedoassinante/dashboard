@@ -1,0 +1,41 @@
+name: Backfill de métricas oficiais novas (histórico, 1x só)
+
+# Rodar UMA ÚNICA VEZ, depois de aplicar supabase/009_metricas_oficiais_extras.sql
+# no SQL Editor do Supabase. Diferente do backfill de usuários únicos,
+# este NÃO precisa reenviar nenhuma planilha ao Storage -- só lê
+# etl/oficial_alloyal.json (já tem os 3 campos novos: carteira_clube_
+# oficial, penetracao_oficial_pct, media_uso_dia_oficial) e atualiza os
+# meses já carregados em resumo_kpis_mensal / vouchers_oficial_mensal.
+on:
+  workflow_dispatch:
+    inputs:
+      confirmacao:
+        description: 'Digite CONFIRMAR para rodar este backfill'
+        required: true
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Verificar confirmação
+        run: |
+          if [ "${{ github.event.inputs.confirmacao }}" != "CONFIRMAR" ]; then
+            echo "Confirmação incorreta -- cancelando para evitar rodar por engano."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependências
+        run: pip install -r etl/requirements.txt
+
+      - name: Rodar backfill de métricas oficiais (histórico)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: python3 etl/backfill_metricas_oficiais_hist.py

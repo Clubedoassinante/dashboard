@@ -33,6 +33,15 @@ on:
       oficial_frequencia:
         description: "(Opcional) Frequência de uso oficial no mês, fonte Alloyal"
         required: false
+      oficial_carteira:
+        description: "(Opcional) Carteira Clube oficial (base orgânica) no mês, fonte Alloyal"
+        required: false
+      oficial_penetracao:
+        description: "(Opcional) Penetração na base oficial (%) no mês, fonte Alloyal"
+        required: false
+      oficial_media_uso_dia:
+        description: "(Opcional) Média de uso por dia (oficial, só plataforma) no mês, fonte Alloyal"
+        required: false
 
 jobs:
   carga:
@@ -61,4 +70,7 @@ jobs:
             --vouchers-storage-path "${{ github.event.inputs.vouchers_storage_path }}" \
             ${{ github.event.inputs.oficial_vouchers && format('--oficial-vouchers {0}', github.event.inputs.oficial_vouchers) || '' }} \
             ${{ github.event.inputs.oficial_usuarios && format('--oficial-usuarios {0}', github.event.inputs.oficial_usuarios) || '' }} \
-            ${{ github.event.inputs.oficial_frequencia && format('--oficial-frequencia {0}', github.event.inputs.oficial_frequencia) || '' }}
+            ${{ github.event.inputs.oficial_frequencia && format('--oficial-frequencia {0}', github.event.inputs.oficial_frequencia) || '' }} \
+            ${{ github.event.inputs.oficial_carteira && format('--oficial-carteira {0}', github.event.inputs.oficial_carteira) || '' }} \
+            ${{ github.event.inputs.oficial_penetracao && format('--oficial-penetracao {0}', github.event.inputs.oficial_penetracao) || '' }} \
+            ${{ github.event.inputs.oficial_media_uso_dia && format('--oficial-media-uso-dia {0}', github.event.inputs.oficial_media_uso_dia) || '' }}
