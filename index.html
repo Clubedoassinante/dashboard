@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clube do Assinante GZH</title>
+<style>
+:root {
+  --surface-1:      #fcfcfb;
+  --page-plane:     #f9f9f7;
+  --text-primary:   #0b0b0b;
+  --text-secondary: #52514e;
+  --muted:          #898781;
+  --grid:           #e1e0d9;
+  --baseline:       #c3c2b7;
+  --border:         rgba(11,11,11,0.10);
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --series-5: #e87ba4;
+  --series-6: #008300;
+  --series-7: #4a3aa7;
+  --series-8: #e34948;
+  --good: #0ca30c;
+  --warning: #fab219;
+  --serious: #ec835a;
+  --critical: #d03b3b;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --surface-1:      #1a1a19;
+    --page-plane:     #0d0d0d;
+    --text-primary:   #ffffff;
+    --text-secondary: #c3c2b7;
+    --muted:          #898781;
+    --grid:           #2c2c2a;
+    --baseline:       #383835;
+    --border: rgba(255,255,255,0.10);
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #c98500;
+    --series-5: #d55181;
+    --series-6: #008300;
+    --series-7: #9085e9;
+    --series-8: #e66767;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--page-plane); color: var(--text-primary); }
+
+/* ---------- Tela de login ---------- */
+#tela-login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#tela-login .card {
+  width: 100%;
+  max-width: 360px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 32px 28px;
+  margin: 16px;
+}
+#tela-login .card h1 { font-size: 17px; margin: 0 0 4px; }
+#tela-login .card .sub { font-size: 13px; color: var(--text-secondary); margin: 0 0 24px; }
+#tela-login label { display: block; font-size: 12.5px; color: var(--text-secondary); margin-bottom: 6px; }
+#tela-login input {
+  width: 100%;
+  font-size: 14px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--page-plane);
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+#tela-login button {
+  width: 100%;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 11px 12px;
+  border-radius: 8px;
+  border: none;
+  background: var(--series-1);
+  color: #fff;
+  cursor: pointer;
+}
+#tela-login button:disabled { opacity: 0.6; cursor: default; }
+#tela-login .erro {
+  font-size: 13px;
+  color: var(--critical);
+  margin: -8px 0 16px;
+  display: none;
+}
+
+/* ---------- Painel mensal ---------- */
+header {
+  padding: 18px 24px; background: var(--surface-1); border-bottom: 1px solid var(--border);
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
+  position: sticky; top: 0; z-index: 20;
+}
+header h1 { font-size: 18px; margin: 0; }
+header .sub { color: var(--text-secondary); font-size: 13px; margin-top: 2px; }
+header .controles { display: flex; align-items: center; gap: 10px; }
+select#mes-select {
+  font-size: 14px; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--page-plane); color: var(--text-primary);
+}
+button#btn-sair {
+  font-size: 13px; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--page-plane); color: var(--text-secondary); cursor: pointer;
+}
+button#btn-sair:hover { color: var(--text-primary); border-color: var(--series-1); }
+nav.section-nav {
+  position: sticky; top: 65px; z-index: 19; background: var(--page-plane); border-bottom: 1px solid var(--border);
+  padding: 8px 24px; display: flex; gap: 6px; flex-wrap: wrap; font-size: 12px;
+}
+nav.section-nav a {
+  color: var(--text-secondary); text-decoration: none; padding: 5px 10px; border-radius: 999px;
+  border: 1px solid var(--border); background: var(--surface-1); white-space: nowrap;
+}
+nav.section-nav a:hover { color: var(--text-primary); border-color: var(--series-1); }
+main { max-width: 1240px; margin: 0 auto; padding: 24px; }
+section.block { margin-bottom: 8px; scroll-margin-top: 110px; }
+.section-title { font-size: 15px; font-weight: 600; margin: 32px 0 12px; color: var(--text-primary); display: flex; align-items: baseline; gap: 8px; }
+.section-title .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.section-title:first-child { margin-top: 0; }
+.section-desc { font-size: 12.5px; color: var(--muted); margin: -8px 0 14px; }
+.subsection-title { font-size: 13px; font-weight: 600; margin: 22px 0 10px; color: var(--text-secondary); }
+
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.kpi-grid.hero { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.kpi-card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+.kpi-card.hero { padding: 18px 20px; border-width: 1.5px; }
+.kpi-card .rank { font-size: 10.5px; font-weight: 700; color: var(--series-1); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+.kpi-card .label { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+.kpi-card.hero .label { font-size: 13px; }
+.kpi-card .value { font-size: 24px; font-weight: 700; }
+.kpi-card.hero .value { font-size: 32px; }
+.kpi-card .hint { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+.kpi-card .delta { font-size: 12.5px; font-weight: 600; margin-top: 6px; }
+.kpi-card .delta.up { color: var(--good); }
+.kpi-card .delta.down { color: var(--critical); }
+.kpi-card .delta.flat { color: var(--muted); }
+
+.chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px; }
+.chart-grid.trend { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.chart-card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+.chart-card.wide { grid-column: 1 / -1; }
+.chart-card h3 { font-size: 13.5px; margin: 0 0 12px; font-weight: 600; }
+.chart-card .chart-wrap { position: relative; height: 260px; }
+.chart-card.wide .chart-wrap { height: 320px; }
+.chart-card.trend .chart-wrap { height: 160px; }
+.chart-card.trend h3 { margin-bottom: 2px; }
+.chart-card .chart-sub { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+
+.callout {
+  background: var(--surface-1); border: 1px solid var(--border); border-left: 4px solid var(--warning);
+  border-radius: 8px; padding: 16px 18px; font-size: 13.5px; line-height: 1.55;
+}
+.callout h3 { margin: 0 0 8px; font-size: 14px; }
+.callout ul { margin: 8px 0 0; padding-left: 20px; }
+.callout li { margin-bottom: 4px; }
+.callout.aviso { border-left-color: var(--series-1); }
+
+table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.data-table th, table.data-table td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--grid); }
+table.data-table th { color: var(--text-secondary); font-weight: 600; font-size: 12px; }
+table.data-table td.num, table.data-table th.num { text-align: right; font-variant-numeric: tabular-nums; }
+table.data-table tr.total-row td { border-top: 1px solid var(--border); border-bottom: none; font-weight: 600; }
+.chart-card.table-card .table-wrap { max-height: 340px; overflow-y: auto; }
+.chart-card.table-card.wide .table-wrap { max-height: 400px; }
+
+.footnotes { margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); line-height: 1.6; }
+.footnotes ul { padding-left: 18px; margin: 6px 0; }
+.carregando { font-size: 13px; color: var(--muted); padding: 24px 0; }
+select.mini-select {
+  font-size: 12.5px; padding: 5px 8px; border-radius: 6px; border: 1px solid var(--border);
+  background: var(--page-plane); color: var(--text-primary);
+}
+</style>
+</head>
+<body>
+
+<!-- ================= Tela de login ================= -->
+<div id="tela-login">
+  <div class="card">
+    <h1>Clube do Assinante GZH</h1>
+    <div class="sub">Painel interno — acesso restrito</div>
+    <form id="form-login">
+      <label for="email">E-mail</label>
+      <input id="email" type="email" required autocomplete="username">
+      <label for="senha">Senha</label>
+      <input id="senha" type="password" required autocomplete="current-password">
+      <div class="erro" id="erro"></div>
+      <button type="submit" id="btn-entrar">Entrar</button>
+    </form>
+  </div>
+</div>
+
+<!-- ================= Painel mensal ================= -->
+<div id="tela-painel" style="display:none">
+  <header>
+    <div>
+      <h1>Clube do Assinante GZH — Painel Mês a Mês</h1>
+      <div class="sub" id="mes-subtitle">—</div>
+    </div>
+    <div class="controles">
+      <select id="mes-select"></select>
+      <button id="btn-sair">Sair</button>
+    </div>
+  </header>
+  <nav class="section-nav">
+    <a href="#sec-kpis">KPIs principais</a>
+    <a href="#sec-kpis-sec">KPIs secundários</a>
+    <a href="#sec-tendencia">Tendência histórica</a>
+    <a href="#sec-crescimento">O que puxou o crescimento</a>
+    <a href="#sec-comparacao">Comparação de períodos</a>
+    <a href="#sec-segmentacoes">Segmentações</a>
+    <a href="#sec-recorrencia">Recorrência &amp; ativação</a>
+  </nav>
+  <main id="main">
+    <div class="carregando" id="carregando">Carregando dados do Supabase...</div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+<script>
+// =====================================================================
+// Clube do Assinante GZH — Painel Mês a Mês (v1 sobre Supabase).
+//
+// Site de página única: login e painel vivem no mesmo index.html,
+// alternados por JS (mostrarLogin/mostrarPainel), sem navegação entre
+// arquivos. Decisão de 02/10/2026 (ver Blueprint, bug #13): o layout
+// anterior com login.html + painel-mensal.html + supabase-config.js
+// separados quebrava toda vez que os arquivos eram colocados em pastas
+// diferentes do esperado no upload manual pelo GitHub. Um arquivo só
+// elimina essa classe inteira de problema.
+//
+// Escopo combinado com Stela em 02/10/2026: construir já com o que
+// existe hoje nas views/funções do Supabase (v_kpis_mensal,
+// v_composicao_carteira, v_quem_gerou_por_dimensao, fn_waterfall_*,
+// fn_comparacao_periodos, fn_recorrencia_*, fn_ativacao_coorte).
+//
+// Fora do v1 (combinado, não esquecido -- ver Blueprint):
+//  - 5 métricas que nunca foram gravadas no schema novo: Top marcas,
+//    Qualidade de dados, Janela até 1º voucher, Usuários ativos 12m,
+//    Novos usuários únicos no ano.
+//  - Seções de texto narrativo (Resumo executivo, "O que aconteceu",
+//    "Por que aconteceu", "O que fazer") -- não existe campo de
+//    narrativa no banco novo.
+// Decisão da Stela: ver o site rodando primeiro; se algum número não
+// bater com o painel antigo, voltamos e ajustamos.
+// =====================================================================
+
+// ---------------------------------------------------------------------
+// Configuração do cliente Supabase (antes era um arquivo separado,
+// supabase-config.js -- agora inline aqui, por isso não tem que
+// existir nenhum outro arquivo além deste).
+//
+// A chave abaixo é a PUBLISHABLE key (prefixo sb_publishable_), feita
+// pra rodar no navegador -- ela só enxerga o que o Row Level Security
+// do banco deixar (ver supabase/003_*.sql / 004_*.sql). Nunca coloque
+// aqui a chave secreta (sb_secret_...) -- essa é só do ETL, roda no
+// GitHub Actions.
+// ---------------------------------------------------------------------
+const SUPABASE_URL = 'https://dbxncpmzdvkqrebdvqpe.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_9GZkZlBbaZe5l05g0wyo3A_wudUpws0';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+function mostrarLogin() {
+  document.getElementById('tela-painel').style.display = 'none';
+  document.getElementById('tela-login').style.display = 'flex';
+}
+function mostrarPainel() {
+  document.getElementById('tela-login').style.display = 'none';
+  document.getElementById('tela-painel').style.display = 'block';
+}
+
+const MES_NOMES = {'01':'janeiro','02':'fevereiro','03':'março','04':'abril','05':'maio','06':'junho','07':'julho','08':'agosto','09':'setembro','10':'outubro','11':'novembro','12':'dezembro'};
+function fmtMesLabel(mesKey) { const [a,m] = mesKey.split('-'); return `${MES_NOMES[m]}/${a}`; }
+function fmtInt(n) { return (n===null||n===undefined) ? '—' : new Intl.NumberFormat('pt-BR').format(Math.round(n)); }
+function fmtPct(n) { return (n===null||n===undefined) ? '—' : Number(n).toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1}) + '%'; }
+function fmtDec(n) { return (n===null||n===undefined) ? '—' : Number(n).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+function css(varName) { return getComputedStyle(document.documentElement).getPropertyValue(varName).trim(); }
+function somaMeses(mesRef, deslocamento) {
+  const [ano, mes] = mesRef.split('-').map(Number);
+  const total = ano * 12 + (mes - 1) + deslocamento;
+  const novoAno = Math.floor(total / 12), novoMes = total % 12;
+  return `${String(novoAno).padStart(4,'0')}-${String(novoMes + 1).padStart(2,'0')}-01`;
+}
+
+const COLORS = ['--series-1','--series-2','--series-3','--series-4','--series-5','--series-6','--series-7','--series-8'].map(css);
+
+let charts = [];
+function destroyCharts() { charts.forEach(c => c.destroy()); charts = []; }
+
+function el(tag, className, html) {
+  const d = document.createElement(tag);
+  if (className) d.className = className;
+  if (html !== undefined) d.innerHTML = html;
+  return d;
+}
+
+function sectionTitle(main, id, eyebrow, title, desc) {
+  const sec = el('section', 'block');
+  sec.id = id;
+  sec.appendChild(el('div', 'section-title', `<span class="eyebrow">${eyebrow}</span> ${title}`));
+  if (desc) sec.appendChild(el('div', 'section-desc', desc));
+  main.appendChild(sec);
+  return sec;
+}
+
+function kpiCard(label, value, hint, opts={}) {
+  const d = document.createElement('div');
+  d.className = 'kpi-card' + (opts.hero ? ' hero' : '');
+  let html = '';
+  if (opts.rank) html += `<div class="rank">${opts.rank}</div>`;
+  html += `<div class="label">${label}</div><div class="value">${value}</div>`;
+  if (opts.deltaHtml) html += opts.deltaHtml;
+  if (hint) html += `<div class="hint">${hint}</div>`;
+  d.innerHTML = html;
+  return d;
+}
+
+function deltaHtml(atual, anterior, higherIsBetter=true) {
+  if (atual===null||atual===undefined||anterior===null||anterior===undefined||anterior===0) return '';
+  const variacao = ((atual-anterior)/Math.abs(anterior))*100;
+  const subiu = variacao > 0.05, desceu = variacao < -0.05;
+  const bom = subiu ? higherIsBetter : (desceu ? !higherIsBetter : null);
+  const cls = (subiu||desceu) ? (bom ? 'up':'down') : 'flat';
+  const seta = subiu ? '▲' : (desceu ? '▼' : '—');
+  return `<div class="delta ${cls}">${seta} ${variacao>=0?'+':''}${variacao.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})}% vs. mês anterior</div>`;
+}
+
+function makeChartCard(title, wide=false, sub=null) {
+  const card = document.createElement('div');
+  card.className = 'chart-card' + (wide ? ' wide' : '');
+  card.appendChild(el('h3', null, title));
+  if (sub) card.appendChild(el('div', 'chart-sub', sub));
+  const wrap = document.createElement('div');
+  wrap.className = 'chart-wrap';
+  const canvas = document.createElement('canvas');
+  wrap.appendChild(canvas);
+  card.appendChild(wrap);
+  return {card, canvas};
+}
+
+function distTableCard(title, sub, labels, values, wide=false) {
+  const card = document.createElement('div');
+  card.className = 'chart-card table-card' + (wide ? ' wide' : '');
+  card.appendChild(el('h3', null, title));
+  if (sub) card.appendChild(el('div', 'chart-sub', sub));
+  const total = values.reduce((a,b) => a+(b||0), 0);
+  let rows = labels.map((lab,i) => {
+    const v = values[i]||0;
+    const pct = total ? (v/total*100) : 0;
+    return `<tr><td>${lab}</td><td class="num">${fmtInt(v)}</td><td class="num">${fmtPct(pct)}</td></tr>`;
+  }).join('');
+  rows += `<tr class="total-row"><td>Total</td><td class="num">${fmtInt(total)}</td><td class="num">100,0%</td></tr>`;
+  card.appendChild(el('div', 'table-wrap', `<table class="data-table"><thead><tr><th>Categoria</th><th class="num">Qtd</th><th class="num">%</th></tr></thead><tbody>${rows}</tbody></table>`));
+  return card;
+}
+
+function compareTableCard(title, sub, labels, carteiraVals, geradorVals, wide=true) {
+  const card = document.createElement('div');
+  card.className = 'chart-card table-card' + (wide ? ' wide' : '');
+  card.appendChild(el('h3', null, title));
+  if (sub) card.appendChild(el('div', 'chart-sub', sub));
+  const totalCarteira = carteiraVals.reduce((a,b) => a+(b||0), 0);
+  const totalGerador = geradorVals.reduce((a,b) => a+(b||0), 0);
+  let rows = labels.map((lab,i) => {
+    const c = carteiraVals[i]||0, g = geradorVals[i]||0;
+    const penet = c ? (g/c*100) : null;
+    return `<tr><td>${lab}</td><td class="num">${fmtInt(c)}</td><td class="num">${fmtInt(g)}</td><td class="num">${penet===null?'—':fmtPct(penet)}</td></tr>`;
+  }).join('');
+  const penetTotal = totalCarteira ? (totalGerador/totalCarteira*100) : null;
+  rows += `<tr class="total-row"><td>Total</td><td class="num">${fmtInt(totalCarteira)}</td><td class="num">${fmtInt(totalGerador)}</td><td class="num">${penetTotal===null?'—':fmtPct(penetTotal)}</td></tr>`;
+  card.appendChild(el('div', 'table-wrap', `<table class="data-table"><thead><tr><th>Categoria</th><th class="num">Carteira ativa</th><th class="num">Geradores de voucher</th><th class="num">Penetração</th></tr></thead><tbody>${rows}</tbody></table>`));
+  return card;
+}
+
+function lineTrendChart(canvas, labels, data, colorVar, opts={}) {
+  const color = css(colorVar);
+  const c = new Chart(canvas, {
+    type: 'line',
+    data: { labels, datasets: [{
+      data, borderColor: color, backgroundColor: color + '22',
+      fill: true, tension: 0.25, pointRadius: labels.length > 18 ? 0 : 2.5,
+      pointBackgroundColor: color, borderWidth: 2,
+    }]},
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => ' ' + (opts.fmt ? opts.fmt(ctx.parsed.y) : fmtInt(ctx.parsed.y)) } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: css('--muted'), font: {size: 9.5}, maxRotation: 0, autoSkip: true, maxTicksLimit: 8 } },
+        y: { grid: { color: css('--grid') }, ticks: { color: css('--muted'), font: {size: 10} } }
+      }
+    }
+  });
+  charts.push(c);
+  return c;
+}
+
+function fmtIntSigned(n) {
+  if (n === null || n === undefined) return '—';
+  const r = Math.round(n);
+  return (r < 0 ? '-' : '') + fmtInt(Math.abs(r));
+}
+
+function waterfallChart(canvas, labels, novos, canceladas, saldo) {
+  const c = new Chart(canvas, {
+    data: {
+      labels,
+      datasets: [
+        { type: 'bar', label: 'Novos assinantes', data: novos, backgroundColor: css('--series-3'), borderRadius: 4, maxBarThickness: 22, order: 2 },
+        { type: 'bar', label: 'Cancelamentos', data: canceladas.map(v => -v), backgroundColor: css('--series-8'), borderRadius: 4, maxBarThickness: 22, order: 2 },
+        { type: 'line', label: 'Saldo líquido', data: saldo, borderColor: css('--series-1'), backgroundColor: css('--series-1'), borderWidth: 2, pointRadius: 3, tension: 0.2, order: 1 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { color: css('--text-secondary'), font: {size: 11}, boxWidth: 12 } },
+        tooltip: { callbacks: { label: (ctx) => ` ${ctx.dataset.label}: ${fmtIntSigned(ctx.parsed.y)}` } }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: css('--muted'), font: {size: 10.5} } },
+        y: { grid: { color: css('--grid') }, ticks: { color: css('--muted'), font: {size: 11}, callback: v => fmtIntSigned(v) } }
+      }
+    }
+  });
+  charts.push(c);
+  return c;
+}
+
+function groupedBarChart(canvas, labels, series) {
+  const c = new Chart(canvas, {
+    type: 'bar',
+    data: { labels, datasets: series.map(s => ({ label: s.label, data: s.data, backgroundColor: s.color, borderRadius: 4, maxBarThickness: 28 })) },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { color: css('--text-secondary'), font: {size: 11}, boxWidth: 12 } },
+        tooltip: { callbacks: { label: (ctx) => ` ${ctx.dataset.label}: ${fmtInt(ctx.parsed.y)}` } }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: css('--muted'), font: {size: 10.5} } },
+        y: { grid: { color: css('--grid') }, ticks: { color: css('--muted'), font: {size: 11} }, beginAtZero: true }
+      }
+    }
+  });
+  charts.push(c);
+  return c;
+}
+
+// ---------------------------------------------------------------------
+// Ordens fixas de categoria (iguais ao painel antigo) -- só usadas se a
+// categoria aparecer nos dados do mês.
+// ---------------------------------------------------------------------
+const ORDEM_FAIXA_ETARIA = ['Gen Z','Millennials','Gen X','Baby Boomers','Pré-Boomer','86+ (fora da tabela padrão)','Idade não informada','Erro na idade'];
+const ORDEM_FAIXA_TENURE = ['Onboarding (0–6m)','Consolidação (7m–2a)','Maturidade (3–5a)','Lealdade (6–9a)','Legado (10a+)','Erro na data de assinatura'];
+
+function ordenarCategorias(dimensao, categorias) {
+  if (dimensao === 'faixa_etaria') return ORDEM_FAIXA_ETARIA.filter(k => categorias.includes(k));
+  if (dimensao === 'faixa_tenure') return ORDEM_FAIXA_TENURE.filter(k => categorias.includes(k));
+  if (dimensao === 'safra_semestral') {
+    const anteriores = categorias.find(k => k.startsWith('Safras anteriores'));
+    const resto = categorias.filter(k => !k.startsWith('Safras anteriores') && k !== 'Erro na data de assinatura').sort((a,b)=>a.localeCompare(b));
+    const erro = categorias.filter(k => k === 'Erro na data de assinatura');
+    return [...(anteriores?[anteriores]:[]), ...resto, ...erro];
+  }
+  return [...categorias].sort((a,b)=>a.localeCompare(b));
+}
+
+// =====================================================================
+// Estado + carregamento de dados
+// =====================================================================
+let SERIE_KPIS = [];      // v_kpis_mensal, ordenado por mes_referencia
+let MES_KEYS = [];        // lista de mes_referencia (string 'AAAA-MM-DD')
+
+async function carregarSerieKpis() {
+  const { data, error } = await supabaseClient.from('v_kpis_mensal').select('*').order('mes_referencia');
+  if (error) throw error;
+  return data;
+}
+
+async function carregarComposicao(mesRef) {
+  const { data, error } = await supabaseClient.from('v_composicao_carteira').select('*').eq('mes_referencia', mesRef);
+  if (error) throw error;
+  return data;
+}
+
+async function carregarQuemGerou(mesRef) {
+  const { data, error } = await supabaseClient.from('v_quem_gerou_por_dimensao').select('*').eq('mes_referencia', mesRef);
+  if (error) throw error;
+  return data;
+}
+
+async function rpcWaterfall(mesInicio, mesFim) {
+  const { data, error } = await supabaseClient.rpc('fn_waterfall_crescimento', { mes_inicio: mesInicio, mes_fim: mesFim });
+  if (error) throw error;
+  return data;
+}
+
+async function rpcComparacao(mesA, mesB) {
+  const { data, error } = await supabaseClient.rpc('fn_comparacao_periodos', { mes_a: mesA, mes_b: mesB });
+  if (error) throw error;
+  return data;
+}
+
+async function rpcRecorrenciaDistintos(mesInicio, mesFim) {
+  const { data, error } = await supabaseClient.rpc('fn_recorrencia_meses_distintos', { mes_inicio: mesInicio, mes_fim: mesFim });
+  if (error) throw error;
+  return data;
+}
+
+async function rpcRecorrenciaConsecutiva(mesFim) {
+  const { data, error } = await supabaseClient.rpc('fn_recorrencia_consecutiva', { mes_fim: mesFim });
+  if (error) throw error;
+  return data;
+}
+
+async function rpcAtivacaoCoorte(mesCoorte) {
+  const { data, error } = await supabaseClient.rpc('fn_ativacao_coorte', { mes_coorte: mesCoorte });
+  if (error) throw error;
+  return data;
+}
+
+// =====================================================================
+// Render
+// =====================================================================
+const main = document.getElementById('main');
+
+function kpiPorMes(mesRef) { return SERIE_KPIS.find(r => r.mes_referencia === mesRef); }
+
+async function render(mesKey) {
+  destroyCharts();
+  main.innerHTML = '';
+  document.getElementById('mes-subtitle').textContent = `Referente a ${fmtMesLabel(mesKey)}`;
+
+  const m = kpiPorMes(mesKey);
+  const idx = SERIE_KPIS.findIndex(r => r.mes_referencia === mesKey);
+  const anterior = idx > 0 ? SERIE_KPIS[idx - 1] : null;
+
+  // ================= KPIs principais =================
+  sectionTitle(main, 'sec-kpis', '1', 'KPIs principais', 'Métricas oficiais (Alloyal) — as duas North Stars do Clube: aquisição e uso dos benefícios.');
+  const kpiHero = el('div', 'kpi-grid hero');
+  kpiHero.appendChild(kpiCard('Penetração da base ativa', fmtPct(m.penetracao_pct), 'Geradores de voucher ÷ carteira ativa', { hero: true, rank: 'Prioridade 1', deltaHtml: anterior ? deltaHtml(m.penetracao_pct, anterior.penetracao_pct) : '' }));
+  kpiHero.appendChild(kpiCard('Vouchers gerados (oficial)', fmtInt(m.vouchers_gerados_oficial), 'Fonte: Alloyal', { hero: true, rank: 'Prioridade 2', deltaHtml: anterior ? deltaHtml(m.vouchers_gerados_oficial, anterior.vouchers_gerados_oficial) : '' }));
+  kpiHero.appendChild(kpiCard('Frequência de uso (oficial)', fmtDec(m.frequencia_uso_oficial), 'Vouchers por usuário gerador — Fonte: Alloyal', { hero: true, rank: 'Prioridade 3', deltaHtml: anterior ? deltaHtml(m.frequencia_uso_oficial, anterior.frequencia_uso_oficial) : '' }));
+  main.querySelector('#sec-kpis').appendChild(kpiHero);
+
+  // ================= KPIs secundários =================
+  sectionTitle(main, 'sec-kpis-sec', '2', 'KPIs secundários', 'Carteira e cruzamento detalhado (base interna).');
+  const kpiGrid = el('div', 'kpi-grid');
+  kpiGrid.appendChild(kpiCard('Carteira ativa', fmtInt(m.carteira_ativa), null, { deltaHtml: anterior ? deltaHtml(m.carteira_ativa, anterior.carteira_ativa) : '' }));
+  kpiGrid.appendChild(kpiCard('Novos assinantes no mês', fmtInt(m.novos_assinantes), null, { deltaHtml: anterior ? deltaHtml(m.novos_assinantes, anterior.novos_assinantes) : '' }));
+  kpiGrid.appendChild(kpiCard('Cancelamentos no mês', fmtInt(m.canceladas), null, { deltaHtml: anterior ? deltaHtml(m.canceladas, anterior.canceladas, false) : '' }));
+  kpiGrid.appendChild(kpiCard('Saldo líquido', fmtInt(m.novos_assinantes - m.canceladas), 'Novos − cancelamentos'));
+  kpiGrid.appendChild(kpiCard('Usuários únicos geradores', fmtInt(m.usuarios_unicos_geradores), 'Cruzamento interno (pode diferir do oficial)', { deltaHtml: anterior ? deltaHtml(m.usuarios_unicos_geradores, anterior.usuarios_unicos_geradores) : '' }));
+  kpiGrid.appendChild(kpiCard('Vouchers líquidos (interno)', fmtInt(m.vouchers_liquidos), 'Já exclui farmácia e conta administrativa (ADMIN C)', { deltaHtml: anterior ? deltaHtml(m.vouchers_liquidos, anterior.vouchers_liquidos) : '' }));
+  kpiGrid.appendChild(kpiCard('Plano Família ativo', fmtPct(m.plano_familia_ativo_pct), '% da carteira ativa com Plano Família'));
+  main.querySelector('#sec-kpis-sec').appendChild(kpiGrid);
+
+  // ================= Tendência histórica =================
+  sectionTitle(main, 'sec-tendencia', '3', 'Tendência histórica', `Série completa desde ${fmtMesLabel(SERIE_KPIS[0].mes_referencia)}.`);
+  const gridTrend = el('div', 'chart-grid trend');
+  main.querySelector('#sec-tendencia').appendChild(gridTrend);
+  const labelsHist = SERIE_KPIS.map(r => fmtMesLabel(r.mes_referencia));
+  {
+    const {card, canvas} = makeChartCard('Penetração da base ativa (%)');
+    card.className += ' trend';
+    gridTrend.appendChild(card);
+    lineTrendChart(canvas, labelsHist, SERIE_KPIS.map(r => r.penetracao_pct), '--series-1', { fmt: fmtPct });
+  }
+  {
+    const {card, canvas} = makeChartCard('Vouchers gerados (oficial)');
+    card.className += ' trend';
+    gridTrend.appendChild(card);
+    lineTrendChart(canvas, labelsHist, SERIE_KPIS.map(r => r.vouchers_gerados_oficial), '--series-2');
+  }
+  {
+    const {card, canvas} = makeChartCard('Carteira ativa');
+    card.className += ' trend';
+    gridTrend.appendChild(card);
+    lineTrendChart(canvas, labelsHist, SERIE_KPIS.map(r => r.carteira_ativa), '--series-3');
+  }
+
+  // ================= O que puxou o crescimento (waterfall) =================
+  sectionTitle(main, 'sec-crescimento', '4', 'O que puxou o crescimento', 'Novos assinantes vs. cancelamentos — últimos 12 meses até o mês selecionado.');
+  const secCresc = main.querySelector('#sec-crescimento');
+  const mesInicioWaterfall = idx >= 11 ? SERIE_KPIS[idx-11].mes_referencia : SERIE_KPIS[0].mes_referencia;
+  const waterfallDados = await rpcWaterfall(mesInicioWaterfall, mesKey);
+  const gridCresc = el('div', 'chart-grid');
+  secCresc.appendChild(gridCresc);
+  {
+    const {card, canvas} = makeChartCard('Novos assinantes, cancelamentos e saldo líquido', true);
+    gridCresc.appendChild(card);
+    waterfallChart(canvas, waterfallDados.map(r => fmtMesLabel(r.mes_referencia)),
+      waterfallDados.map(r => r.novos_assinantes), waterfallDados.map(r => r.canceladas), waterfallDados.map(r => r.saldo_liquido));
+  }
+
+  // ================= Comparação de períodos =================
+  sectionTitle(main, 'sec-comparacao', '5', 'Comparação de períodos', 'Mês selecionado vs. mês anterior e vs. mesmo mês do ano passado (sazonalidade).');
+  const secComp = main.querySelector('#sec-comparacao');
+  const mesAnoAnterior = somaMeses(mesKey, -12);
+  const temAnoAnterior = SERIE_KPIS.some(r => r.mes_referencia === mesAnoAnterior);
+  const gridComp = el('div', 'chart-grid');
+  secComp.appendChild(gridComp);
+  if (anterior) {
+    const dados = await rpcComparacao(anterior.mes_referencia, mesKey);
+    gridComp.appendChild(tabelaComparacao(`${fmtMesLabel(mesKey)} vs. ${fmtMesLabel(anterior.mes_referencia)} (mês anterior)`, dados));
+  }
+  if (temAnoAnterior) {
+    const dados = await rpcComparacao(mesAnoAnterior, mesKey);
+    gridComp.appendChild(tabelaComparacao(`${fmtMesLabel(mesKey)} vs. ${fmtMesLabel(mesAnoAnterior)} (mesmo mês, ano anterior)`, dados));
+  }
+
+  // ================= Segmentações =================
+  sectionTitle(main, 'sec-segmentacoes', '6', 'Segmentações', 'Composição da carteira e quem gerou voucher, por dimensão.');
+  const secSeg = main.querySelector('#sec-segmentacoes');
+  const [composicao, quemGerou] = await Promise.all([carregarComposicao(mesKey), carregarQuemGerou(mesKey)]);
+
+  secSeg.appendChild(el('div', 'subsection-title', 'Composição da carteira ativa'));
+  const gridComposicao = el('div', 'chart-grid');
+  secSeg.appendChild(gridComposicao);
+  const dimensoesComposicao = [...new Set(composicao.map(r => r.dimensao))];
+  for (const dim of dimensoesComposicao) {
+    const linhas = composicao.filter(r => r.dimensao === dim);
+    const categorias = ordenarCategorias(dim, linhas.map(r => r.categoria));
+    const valores = categorias.map(cat => linhas.find(r => r.categoria === cat)?.qtd || 0);
+    gridComposicao.appendChild(distTableCard(tituloDimensao(dim), null, categorias, valores));
+  }
+
+  secSeg.appendChild(el('div', 'subsection-title', 'Quem gerou voucher no mês — comparado com a carteira ativa'));
+  const gridQuemGerou = el('div', 'chart-grid');
+  secSeg.appendChild(gridQuemGerou);
+  const dimensoesQuemGerou = [...new Set(quemGerou.map(r => r.dimensao))];
+  for (const dim of dimensoesQuemGerou) {
+    const linhas = quemGerou.filter(r => r.dimensao === dim);
+    const categorias = ordenarCategorias(dim, linhas.map(r => r.categoria));
+    const carteiraVals = categorias.map(cat => linhas.find(r => r.categoria === cat)?.carteira_ativa || 0);
+    const geradorVals = categorias.map(cat => linhas.find(r => r.categoria === cat)?.geradores || 0);
+    gridQuemGerou.appendChild(compareTableCard(tituloDimensao(dim), null, categorias, carteiraVals, geradorVals));
+  }
+
+  // ================= Recorrência & ativação (janela de 6 meses) =================
+  await renderRecorrenciaAtivacao();
+
+  // ================= Nota de escopo =================
+  main.appendChild(el('div', 'footnotes', `<b>Nota sobre esta versão do painel</b>
+    <ul>
+      <li>Este é o v1 do painel novo (Supabase + GitHub Pages), combinado com Stela em 02/10/2026. Cinco métricas do painel antigo ainda não têm dado salvo no schema novo e ficam de fora por enquanto: Top marcas por voucher, Qualidade de dados, Janela até o 1º voucher, Usuários ativos 12 meses e Novos usuários únicos no ano.</li>
+      <li>As seções de texto corrido do painel antigo (Resumo executivo, Diagnósticos, Insights, Próximas oportunidades) também ficam de fora até decidirmos onde esse texto vai morar no banco novo.</li>
+      <li>Recorrência e Ativação por coorte só têm dado correto dentro da janela móvel de 6 meses de detalhe cru (ver Blueprint) — meses mais antigos aparecem vazios ali, isso é esperado.</li>
+    </ul>`));
+}
+
+function tituloDimensao(dim) {
+  const nomes = { produto: 'Modalidade de produto', plano_familia: 'Status Plano Família', faixa_etaria: 'Faixa etária (geracional)', faixa_tenure: 'Faixa de tenure', safra_semestral: 'Safra semestral' };
+  return nomes[dim] || dim;
+}
+
+function tabelaComparacao(titulo, dados) {
+  const nomes = { carteira_ativa: 'Carteira ativa', canceladas: 'Cancelamentos', novos_assinantes: 'Novos assinantes', vouchers_liquidos: 'Vouchers líquidos (interno)', usuarios_unicos_geradores: 'Usuários únicos geradores', penetracao_pct: 'Penetração (%)' };
+  const rows = dados.map(r => {
+    const isPct = r.metrica === 'penetracao_pct';
+    const fmt = isPct ? fmtPct : fmtInt;
+    const deltaTxt = r.delta_pct !== null && r.delta_pct !== undefined ? `${r.delta_pct >= 0 ? '+' : ''}${fmtDec(r.delta_pct)}%` : (isPct ? `${r.delta_abs >= 0 ? '+' : ''}${fmtDec(r.delta_abs)} p.p.` : '—');
+    return `<tr><td>${nomes[r.metrica] || r.metrica}</td><td class="num">${fmt(r.valor_a)}</td><td class="num">${fmt(r.valor_b)}</td><td class="num">${deltaTxt}</td></tr>`;
+  }).join('');
+  const card = document.createElement('div');
+  card.className = 'chart-card table-card';
+  card.appendChild(el('h3', null, titulo));
+  card.appendChild(el('div', 'table-wrap', `<table class="data-table"><thead><tr><th>Métrica</th><th class="num">Antes</th><th class="num">Depois</th><th class="num">Variação</th></tr></thead><tbody>${rows}</tbody></table>`));
+  return card;
+}
+
+async function renderRecorrenciaAtivacao() {
+  sectionTitle(main, 'sec-recorrencia', '7', 'Recorrência & ativação', 'Baseado no detalhe cru por pessoa — só existe para os últimos 6 meses (janela móvel, ver Blueprint). Não muda com o seletor de mês acima.');
+  const sec = main.querySelector('#sec-recorrencia');
+  const mesFim = SERIE_KPIS[SERIE_KPIS.length - 1].mes_referencia;
+  const mesInicioJanela = somaMeses(mesFim, -5);
+
+  const grid = el('div', 'chart-grid');
+  sec.appendChild(grid);
+
+  const [distintos, consecutivos] = await Promise.all([
+    rpcRecorrenciaDistintos(mesInicioJanela, mesFim),
+    rpcRecorrenciaConsecutiva(mesFim),
+  ]);
+
+  if (distintos.length) {
+    grid.appendChild(distTableCard(`Meses distintos com voucher (${fmtMesLabel(mesInicioJanela)}–${fmtMesLabel(mesFim)})`, 'Quantas pessoas geraram voucher em 1, 2, 3... meses diferentes nessa janela', distintos.map(r => `${r.meses_distintos} ${r.meses_distintos===1?'mês':'meses'}`), distintos.map(r => r.qtd_pessoas)));
+  }
+  if (consecutivos.length) {
+    grid.appendChild(distTableCard(`Sequência consecutiva terminando em ${fmtMesLabel(mesFim)}`, 'De quem gerou voucher no mês mais recente, há quantos meses seguidos vem gerando', consecutivos.map(r => `${r.meses_consecutivos} ${r.meses_consecutivos===1?'mês':'meses'}`), consecutivos.map(r => r.qtd_pessoas)));
+  }
+  if (!distintos.length && !consecutivos.length) {
+    sec.appendChild(el('div', 'callout aviso', '<h3>Sem dados de recorrência</h3><p style="margin:0">Não há detalhe cru disponível na janela atual.</p>'));
+  }
+
+  // Ativação por coorte -- seletor próprio, limitado aos últimos 6 meses de entrada
+  sec.appendChild(el('div', 'subsection-title', 'Ativação por coorte de entrada'));
+  const coortesDisponiveis = [];
+  for (let i = 5; i >= 0; i--) coortesDisponiveis.push(somaMeses(mesFim, -i));
+  const seletorWrap = el('div', null, `Coorte de entrada: <select class="mini-select" id="sel-coorte"></select>`);
+  seletorWrap.style.marginBottom = '10px';
+  seletorWrap.style.fontSize = '12.5px';
+  sec.appendChild(seletorWrap);
+  const selCoorte = seletorWrap.querySelector('#sel-coorte');
+  coortesDisponiveis.forEach(k => { const o = document.createElement('option'); o.value = k; o.textContent = fmtMesLabel(k); selCoorte.appendChild(o); });
+  selCoorte.value = coortesDisponiveis[0];
+
+  const coorteCardWrap = el('div', 'chart-grid');
+  sec.appendChild(coorteCardWrap);
+
+  async function renderCoorte() {
+    coorteCardWrap.innerHTML = '';
+    const dados = await rpcAtivacaoCoorte(selCoorte.value);
+    if (!dados.length) {
+      coorteCardWrap.appendChild(el('div', 'callout aviso', '<h3>Sem dados para essa coorte</h3><p style="margin:0">Fora da janela de detalhe cru disponível.</p>'));
+      return;
+    }
+    const {card, canvas} = makeChartCard(`Ativação da coorte de ${fmtMesLabel(selCoorte.value)} (% que já gerou voucher)`, true);
+    coorteCardWrap.appendChild(card);
+    const c = new Chart(canvas, {
+      type: 'bar',
+      data: { labels: dados.map(r => fmtMesLabel(r.mes_referencia)), datasets: [{ label: 'Ativação (%)', data: dados.map(r => r.ativacao_pct), backgroundColor: css('--series-1'), borderRadius: 4, maxBarThickness: 40 }] },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => ` ${fmtPct(ctx.parsed.y)} (${fmtInt(dados[ctx.dataIndex].geradores)} de ${fmtInt(dados[ctx.dataIndex].coorte_total)})` } } },
+        scales: { x: { grid: { display: false }, ticks: { color: css('--muted'), font: {size: 11} } }, y: { grid: { color: css('--grid') }, ticks: { color: css('--muted'), font: {size: 11}, callback: v => v+'%' }, beginAtZero: true } }
+      }
+    });
+    charts.push(c);
+  }
+  selCoorte.addEventListener('change', renderCoorte);
+  await renderCoorte();
+}
+
+// =====================================================================
+// Inicialização do painel (chamado depois de confirmar a sessão, seja
+// por login agora ou por sessão já existente ao abrir a página).
+// Idempotente: pode ser chamado só uma vez com segurança.
+// =====================================================================
+let painelIniciado = false;
+
+async function iniciarPainel() {
+  if (painelIniciado) return;
+  painelIniciado = true;
+
+  try {
+    SERIE_KPIS = await carregarSerieKpis();
+  } catch (e) {
+    main.innerHTML = `<div class="callout aviso" style="margin-top:24px"><h3>Erro ao carregar dados</h3><p style="margin:0">${e.message || e}</p></div>`;
+    return;
+  }
+
+  if (!SERIE_KPIS.length) {
+    main.innerHTML = `<div class="callout aviso" style="margin-top:24px"><h3>Sem dados</h3><p style="margin:0">Nenhum mês encontrado em v_kpis_mensal.</p></div>`;
+    return;
+  }
+
+  MES_KEYS = SERIE_KPIS.map(r => r.mes_referencia);
+  const select = document.getElementById('mes-select');
+  MES_KEYS.forEach(k => { const o = document.createElement('option'); o.value = k; o.textContent = fmtMesLabel(k); select.appendChild(o); });
+  select.value = MES_KEYS[MES_KEYS.length - 1];
+  select.addEventListener('change', () => render(select.value));
+
+  await render(select.value);
+}
+
+// =====================================================================
+// Login
+// =====================================================================
+const formLogin = document.getElementById('form-login');
+const erroBox = document.getElementById('erro');
+const btnEntrar = document.getElementById('btn-entrar');
+
+formLogin.addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  erroBox.style.display = 'none';
+  btnEntrar.disabled = true;
+  btnEntrar.textContent = 'Entrando...';
+
+  const email = document.getElementById('email').value.trim();
+  const senha = document.getElementById('senha').value;
+
+  const { error } = await supabaseClient.auth.signInWithPassword({ email, password: senha });
+
+  btnEntrar.disabled = false;
+  btnEntrar.textContent = 'Entrar';
+
+  if (error) {
+    erroBox.textContent = 'E-mail ou senha incorretos.';
+    erroBox.style.display = 'block';
+    return;
+  }
+
+  mostrarPainel();
+  await iniciarPainel();
+});
+
+document.getElementById('btn-sair').addEventListener('click', async () => {
+  await supabaseClient.auth.signOut();
+  window.location.reload();
+});
+
+// =====================================================================
+// Boot -- decide qual tela mostrar ao abrir a página, uma vez só.
+// =====================================================================
+(async function boot() {
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (session) {
+    mostrarPainel();
+    await iniciarPainel();
+  } else {
+    mostrarLogin();
+  }
+})();
+</script>
+</body>
+</html>
