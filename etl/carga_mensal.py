@@ -24,6 +24,7 @@ Uso:
         --carteira-storage-path carteira/CARTEIRA_CLUBE_SETEMBRO2026.xlsx \
         --vouchers-storage-path vouchers/Jan_a_set_2026.xlsx \
         [--oficial-vouchers 15000] [--oficial-usuarios 7000] [--oficial-frequencia 2.1] \
+        [--oficial-carteira 91026] [--oficial-penetracao 8.03] [--oficial-media-uso-dia 549] \
         [--manter-arquivo-storage]
 """
 import argparse
@@ -315,7 +316,8 @@ DIMENSOES_COMPOSICAO = [
 
 
 def calcula_resumo(registros_carteira, registros_vouchers, mes_referencia,
-                    oficial_vouchers=None, oficial_usuarios=None, oficial_frequencia=None):
+                    oficial_vouchers=None, oficial_usuarios=None, oficial_frequencia=None,
+                    oficial_carteira=None, oficial_penetracao=None, oficial_media_uso_dia=None):
     """Calcula os 3 resumos agregados (kpis, composição, quem-gerou-por-
     dimensão) a partir dos registros já em memória -- sem precisar
     consultar o banco. Mesma lógica das views antigas (002_views.sql),
@@ -355,6 +357,12 @@ def calcula_resumo(registros_carteira, registros_vouchers, mes_referencia,
         "vouchers_gerados_oficial": oficial_vouchers,
         "usuarios_unicos_oficial": oficial_usuarios,
         "frequencia_uso_oficial": oficial_frequencia,
+        # 3 métricas oficiais novas (ver Blueprint, decisão de 02/10/2026) --
+        # mesmo padrão das 3 acima: vêm prontas da planilha de referência
+        # (oficial_alloyal.json), não recalculadas aqui.
+        "carteira_clube_oficial": oficial_carteira,
+        "penetracao_oficial_pct": oficial_penetracao,
+        "media_uso_dia_oficial": oficial_media_uso_dia,
     }
 
     composicao_rows = []
@@ -418,6 +426,9 @@ def main():
     ap.add_argument("--oficial-vouchers", type=int, default=None)
     ap.add_argument("--oficial-usuarios", type=int, default=None)
     ap.add_argument("--oficial-frequencia", type=float, default=None)
+    ap.add_argument("--oficial-carteira", type=int, default=None)
+    ap.add_argument("--oficial-penetracao", type=float, default=None)
+    ap.add_argument("--oficial-media-uso-dia", type=int, default=None)
     ap.add_argument("--manter-arquivo-storage", action="store_true",
                      help="por padrão, apaga os arquivos originais do Storage após gravar com sucesso no banco")
     ap.add_argument("--bucket", default="uploads-planilhas")
@@ -465,6 +476,7 @@ def main():
     kpis, composicao_rows, quem_gerou_rows, geradores_cpf = calcula_resumo(
         registros_carteira, registros_vouchers, mes_referencia,
         args.oficial_vouchers, args.oficial_usuarios, args.oficial_frequencia,
+        args.oficial_carteira, args.oficial_penetracao, args.oficial_media_uso_dia,
     )
     grava_resumo(supabase, mes_referencia, kpis, composicao_rows, quem_gerou_rows)
     grava_cpfs_geradores(supabase, mes_referencia, geradores_cpf)
@@ -485,6 +497,9 @@ def main():
             "vouchers_gerados_oficial": args.oficial_vouchers,
             "usuarios_unicos_oficial": args.oficial_usuarios,
             "frequencia_uso_oficial": args.oficial_frequencia,
+            "carteira_clube_oficial": args.oficial_carteira,
+            "penetracao_oficial_pct": args.oficial_penetracao,
+            "media_uso_dia_oficial": args.oficial_media_uso_dia,
             "arquivo_origem": arquivo_origem_vouchers,
         }).execute()
         print("  vouchers_oficial_mensal: atualizado")

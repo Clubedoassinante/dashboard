@@ -134,6 +134,9 @@ def main():
                 of["vouchers_gerados_oficial"] if of else None,
                 of["usuarios_unicos_oficial"] if of else None,
                 of["frequencia_uso_oficial"] if of else None,
+                of.get("carteira_clube_oficial") if of else None,
+                of.get("penetracao_oficial_pct") if of else None,
+                of.get("media_uso_dia_oficial") if of else None,
             )
             grava_resumo(supabase, mes_referencia, kpis, composicao_rows, quem_gerou_rows)
             grava_cpfs_geradores(supabase, mes_referencia, geradores_cpf)
@@ -153,6 +156,9 @@ def main():
                     "vouchers_gerados_oficial": of["vouchers_gerados_oficial"],
                     "usuarios_unicos_oficial": of["usuarios_unicos_oficial"],
                     "frequencia_uso_oficial": of["frequencia_uso_oficial"],
+                    "carteira_clube_oficial": of.get("carteira_clube_oficial"),
+                    "penetracao_oficial_pct": of.get("penetracao_oficial_pct"),
+                    "media_uso_dia_oficial": of.get("media_uso_dia_oficial"),
                     "arquivo_origem": "oficial_alloyal.json (referência histórica)",
                 }).execute()
                 print("  vouchers_oficial_mensal: atualizado")
